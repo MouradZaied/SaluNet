@@ -1,0 +1,4 @@
+name: mlp
+input_dim: 3072
+hidden_dim: 512
+depth: 3

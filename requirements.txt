@@ -1,0 +1,9 @@
+torch>=2.4,<3
+torchvision>=0.19,<1
+pytorch-lightning>=2.6,<3
+torchmetrics>=1.8,<2
+numpy>=1.26,<3
+Pillow>=10,<13
+PyYAML>=6,<7
+wandb>=0.26,<1
+rich>=10.2,<15

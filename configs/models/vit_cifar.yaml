@@ -1,0 +1,7 @@
+name: vit_cifar
+image_size: 32
+patches_per_axis: 8
+hidden: 384
+mlp_hidden: 384
+heads: 12
+layers: 7
