@@ -77,9 +77,25 @@ independent runs.
 
 ResNet-18 experiments use 300 epochs. **Best** is a separately reported best
 observed record and is not necessarily the maximum of the three runs summarized
-in the means. For SALU + SWALU on CIFAR-100, **83.27%** is the maximum within
-the primary three-run cohort. The additional exploratory record of **83.42%**
-is excluded from those means, standard deviations, and the primary-table maximum.
+in the means. The 83.27% entry for SALU + SWALU on CIFAR-100 refers specifically
+to the three-run cohort. The additional deterministic run is reported separately
+below.
+
+#### SALU + SWALU / CIFAR-100: execution settings
+
+| Configuration | Execution mode | Runs | EMA Top-1 (%) |
+|---|---|---:|---:|
+| SALU + SWALU | Non-deterministic | 3 | 83.02 ± 0.29 |
+| SALU + SWALU | Deterministic | 1 | **83.42** |
+
+- **Non-deterministic cohort:** `deterministic: false`, `cudnn_benchmark: true`.
+- **Deterministic run:** `deterministic: true`, `cudnn_benchmark: false`.
+
+The deterministic run is reported separately because its execution settings
+differ from those of the three-run cohort. It is excluded from that cohort's
+mean and sample standard deviation. The best EMA accuracy within the cohort is
+83.27%. A single run does not establish an accuracy advantage of deterministic
+execution.
 
 For the CNN CIFAR-100 comparison, BN models use EMA decay 0.997; SALU, GN, and
 RMSNorm use 0.9997. Main-model results provide a comparison independent of
