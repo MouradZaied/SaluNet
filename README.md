@@ -19,11 +19,11 @@ Its slope at the origin is $a$, its asymptotic magnitude is $\sqrt{a/b}$, and it
 The corresponding gated activations are
 
 $$
-\operatorname{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
+mathrm{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
 $$
 
 $$
-\operatorname{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
+\mathrm{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
 \qquad
 \psi(x)=\sqrt{\frac{2}{\pi}}\left(x+0.044715x^3\right).
 $$
