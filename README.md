@@ -1,6 +1,6 @@
 # SaluNet
 
-**Learnable, statistics-free signal transformations for convolutional networks and Vision Transformers.**
+**Learnable elementwise transformations for normalization-free convolutional networks and Vision Transformers.**
 
 SaluNet explores replacing feature normalization layers with **SALU**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
 
