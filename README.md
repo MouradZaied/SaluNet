@@ -19,7 +19,7 @@ Its slope at the origin is $a$, its asymptotic magnitude is $\sqrt{a/b}$, and it
 The corresponding gated activations are
 
 $$
-mathrm{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
+\mathrm{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
 $$
 
 $$
