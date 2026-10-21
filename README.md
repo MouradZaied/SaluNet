@@ -6,6 +6,22 @@ SaluNet explores replacing feature normalization layers with **SALU**, a learnab
 
 This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100.
 
+![SaluNet teaser: PReLU dynamics on CIFAR-10, SALU geometry, and batch-size resilience on CIFAR-100.](assets/teaser.png)
+
+**From normalization-dependent activation plasticity to geometric stabilization.**
+**Left (CIFAR-10):** Mean PReLU slope across three activation layers under BN,
+no normalization, and SALU. Curves and bands report the mean and one standard
+deviation over three seeds; the dashed line marks $\alpha_0=0.25$.
+**Center:** SALU fixes the geometric center at the origin while learning the
+saturation amplitude $S$, transition width $W$, and local gain $S/W$.
+The inset contrasts its polynomial derivative decay with those of $\tanh$
+and $\operatorname{erf}$.
+**Right (CIFAR-100):** SaluNet-C-18 remains trainable as batch size decreases
+from 512 to 1, whereas the matched ResNet-18 (BN+ReLU) baseline degrades sharply
+at small batch sizes.
+
+[View the vector figure (PDF)](assets/teaser.pdf).
+
 ## Operators
 
 For positive coefficients $a$ and $b$, SALU is defined as
@@ -19,11 +35,11 @@ Its slope at the origin is $a$, its asymptotic magnitude is $\sqrt{a/b}$, and it
 The corresponding gated activations are
 
 $$
-\mathrm{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
+\operatorname{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
 $$
 
 $$
-\mathrm{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
+\operatorname{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
 \qquad
 \psi(x)=\sqrt{\frac{2}{\pi}}\left(x+0.044715x^3\right).
 $$
