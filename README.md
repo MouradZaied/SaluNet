@@ -15,7 +15,7 @@ deviation over three seeds; the dashed line marks $\alpha_0=0.25$.
 **Center:** SALU fixes the geometric center at the origin while learning the
 saturation amplitude $S$, transition width $W$, and local gain $S/W$.
 The inset contrasts its polynomial derivative decay with those of $\tanh$
-and $\operatorname{erf}$.
+and $\mathrm{erf}$.
 **Right (CIFAR-100):** SaluNet-C-18 remains trainable as batch size decreases
 from 512 to 1, whereas the matched ResNet-18 (BN+ReLU) baseline degrades sharply
 at small batch sizes.
@@ -35,11 +35,11 @@ Its slope at the origin is $a$, its asymptotic magnitude is $\sqrt{a/b}$, and it
 The corresponding gated activations are
 
 $$
-\operatorname{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
+\mathrm{SWALU}(x;a,b)=\frac{x}{2}\left(1+\phi(x;a,b)\right),
 $$
 
 $$
-\operatorname{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
+\mathrm{GALU}(x;a,b)=\frac{x}{2}\left(1+\phi(\psi(x);a,b)\right),
 \qquad
 \psi(x)=\sqrt{\frac{2}{\pi}}\left(x+0.044715x^3\right).
 $$
