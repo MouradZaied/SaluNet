@@ -234,6 +234,14 @@ python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salune
 The second configuration records the evolution of parameters `a` and `b`.
 It is a separate experiment and is not intended to reproduce the 83.42% result.
 
+#### Experiment logs
+
+- [Deterministic reference run — 83.42% EMA Top-1](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/wyneddgb)
+- [Non-deterministic run with SALU/SWALU parameter logs](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/7iwezan9)
+
+The second run documents the evolution of parameters `a` and `b`
+in a separate, non-deterministic experiment.
+
 Additional configurations are available under `configs/experiments/`, including CIFAR-10 experiments and alternative normalization/activation combinations. Use the configuration associated with the experiment you intend to reproduce; different configurations may use different recipes.
 
 To inspect command-line options:
