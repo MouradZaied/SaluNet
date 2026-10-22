@@ -268,7 +268,11 @@ class BestModelCheckpoint(pl.Callback):
         )
         torch.save(checkpoint, path)
 
-    def on_validation_epoch_end(self, trainer, pl_module):
+    def on_validation_end(self, trainer, pl_module):
+        # Run after LightningModule.on_validation_epoch_end finalizes metrics.
+        # Never select a checkpoint from the preliminary sanity-check pass.
+        if getattr(trainer, "sanity_checking", False):
+            return
         ema_callback = self._find_ema_callback(trainer)
 
         if self.save_raw_best and self.raw_monitor:
