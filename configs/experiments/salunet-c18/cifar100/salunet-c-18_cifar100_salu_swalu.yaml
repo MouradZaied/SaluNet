@@ -1,20 +1,8 @@
-experiment_name: cifar100_resnet18_salu_swalu_freeze_seed1234
-seed: 1234
+experiment_name: cifar100_resnet18_salu_swalu_seed142_recheck
+seed: 142
 deterministic: true
 num_classes: 100
 epochs: 300
-source_notes:
-  from: train_with_wandb-83.25 notebook
-  legacy_name: use_galu=True in notebook
-  formula_note: Notebook GaLu implements 0.5*x*(1+SALU(x)), therefore repo maps this
-    tested recipe to activation.type=swalu.
-  score_label: '83.27'
-  compile_policy_v8_5: CIFAR ResNet18 uses v7-style torch.compile(model) with no explicit
-    mode/dynamic/fullgraph kwargs.
-  scheduler_policy_v8_6: 'tested variant: signal LR becomes 0 after the accelerated
-    cosine first reaches its minimum'
-  positivity_policy_v8_6: activation SWALU uses abs_eps_legacy to preserve abs()+eps
-    notebook behavior
 data:
   name: cifar100
   data_dir: ./data
@@ -85,7 +73,7 @@ ema:
   decay: 0.9997
 checkpoint:
   save_checkpoints: true
-  save_dir: ./checkpoints/cifar100_resnet18_salu_swalu_freeze_seed1234
+  save_dir: ./checkpoints/cifar100_resnet18_salu_swalu_seed142_recheck
   save_raw_best: true
   save_ema_best: true
   save_last: true
@@ -110,20 +98,19 @@ logging:
   log_every_n_steps: 50
   wandb:
     enabled: true
-    project: salunet-c18-cifar100
+    project: salunet-paper
     entity: null
-    name: cifar100_resnet18_salu_swalu_freeze_seed1234
+    name: cifar100_resnet18_salu_swalu_seed142_recheck
     tags:
     - cifar100
-    - resnet18
+    - SaluNet-C-18
     - salu
     - swalu
     - ema
-    - tested-source
-    - strict-notebook
-    - seed1234
+    - seed142
     - freeze-zero
-    - tested-83-27
+    - deterministic
+    - reproduction-attempt
     log_model: false
     offline: false
   tensorboard:
@@ -131,7 +118,7 @@ logging:
     save_dir: logs/tensorboard
   csv:
     enabled: true
-    save_dir: logs/csv
+    save_dir: logs/csv/cifar100_resnet18_salu_swalu_seed142_recheck
   diagnostics:
     enabled: false
     every_n_steps: 100

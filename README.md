@@ -217,18 +217,22 @@ Review `requirements.txt` and `pyproject.toml` for dependency requirements. GPU 
 ## Training
 
 Run commands from the repository root. Review dataset locations, batch size, logging settings, seed, and output paths in the selected YAML file before launching.
-
 ### SaluNet-C / CIFAR-100
 
-```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/cifar100_resnet18_salu_swalu_freeze_seed42-reproducible.yaml
-```
-
-### SaluNet-T / CIFAR-100
+Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-t/cifar100/cifar100_vit_cifar_salu_swalu_seed_42.yaml
+python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml
 ```
+
+Non-deterministic configuration with SALU/SWALU parameter logging:
+
+```bash
+python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
+```
+
+The second configuration records the evolution of parameters `a` and `b`.
+It is a separate experiment and is not intended to reproduce the 83.42% result.
 
 Additional configurations are available under `configs/experiments/`, including CIFAR-10 experiments and alternative normalization/activation combinations. Use the configuration associated with the experiment you intend to reproduce; different configurations may use different recipes.
 
