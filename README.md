@@ -234,14 +234,6 @@ python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salune
 The second configuration records the evolution of parameters `a` and `b`.
 It is a separate experiment and is not intended to reproduce the 83.42% result.
 
-#### Experiment logs
-
-- [Deterministic reference run — 83.42% EMA Top-1](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/wyneddgb)
-- [Non-deterministic run with SALU/SWALU parameter logs](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/7iwezan9)
-
-The second run documents the evolution of parameters `a` and `b`
-in a separate, non-deterministic experiment.
-
 Additional configurations are available under `configs/experiments/`, including CIFAR-10 experiments and alternative normalization/activation combinations. Use the configuration associated with the experiment you intend to reproduce; different configurations may use different recipes.
 
 To inspect command-line options:
@@ -249,6 +241,33 @@ To inspect command-line options:
 ```bash
 python scripts/train.py --help
 python scripts/eval.py --help
+```
+
+
+## Pretrained checkpoints
+
+| Model | Dataset | Weights | Top-1 | Top-5 | Download |
+| --- | --- | --- | --- | --- | --- |
+| SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) |
+
+Results are evaluated in FP32 on the 10,000 CIFAR-100 test images.
+FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
+
+Configuration: [`salunet-c-18_cifar100_salu_swalu.yaml`](configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml).
+
+Download the checkpoint and save it as `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
+
+```bash
+python scripts/eval.py \
+  --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml \
+  --checkpoint checkpoints/cifar100_salu_swalu/best_ema_model.pth \
+  --normalization salu \
+  --activation swalu \
+  --weights selected \
+  --batch-size 512 \
+  --num-workers 2 \
+  --device cuda \
+  --precision fp32
 ```
 
 ## Evaluation and reproducibility
