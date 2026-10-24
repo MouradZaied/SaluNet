@@ -3,19 +3,6 @@ seed: 1234
 deterministic: false
 num_classes: 100
 epochs: 300
-source_notes:
-  from: train_with_wandb-83.25 notebook
-  legacy_name: use_galu=True in notebook
-  formula_note: 'Ablation for article: same CIFAR100 ResNet18 SALU recipe as freeze_signal_after_min_83_27,
-    but activation.type=relu instead of SWALU.'
-  score_label: relu_ablation
-  compile_policy_v8_5: CIFAR ResNet18 uses v7-style torch.compile(model) with no explicit
-    mode/dynamic/fullgraph kwargs.
-  scheduler_policy_v8_6: 'tested variant: signal LR becomes 0 after the accelerated
-    cosine first reaches its minimum'
-  positivity_policy_v8_6: activation ReLU uses abs_eps_legacy to preserve abs()+eps
-    notebook behavior
-  activation_ablation: SWALU replaced by ReLU; signal_control remains SALU.
 data:
   name: cifar100
   data_dir: ./data
@@ -83,7 +70,7 @@ ema:
   decay: 0.9997
 checkpoint:
   save_checkpoints: true
-  save_dir: ./checkpoints/cifar100_resnet18_salu_relu_freeze_signal_after_min_83_27
+  save_dir: ./checkpoints/cifar100_resnet18_salu_relu_freeze_signal_after_min
   save_raw_best: true
   save_ema_best: true
   save_last: true
@@ -121,8 +108,6 @@ logging:
     - strict-notebook
     - seed42
     - freeze-zero
-    - tested-83-27
-    - relu-ablation
     log_model: false
     offline: false
   tensorboard:
