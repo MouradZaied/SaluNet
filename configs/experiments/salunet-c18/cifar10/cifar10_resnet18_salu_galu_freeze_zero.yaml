@@ -25,7 +25,7 @@ model:
   family: cnn
   drop_path_rate: 0.005
   drop_path_scale_by_keep: true
-  drop_path_reverse: false
+  drop_path_reverse: true
   channels_last: false
 signal_control:
   type: salu
@@ -109,7 +109,7 @@ logging:
     - galu
     - ema
     - tested-source
-    - drop_path_0.05
+    - drop_path_0.005
     - legacy_galu_formula
     log_model: false
     offline: false
