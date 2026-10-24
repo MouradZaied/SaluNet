@@ -64,16 +64,22 @@ independent runs.
 
 | Dataset | Stabilizer + activation | Runs | EMA Top-1 (%) | Main Top-1 (%) | Best Top-1 (%) |
 |---|---|---:|---:|---:|---:|
-| CIFAR-10 | BN + ReLU | 3 | 96.95 ± 0.09 | 96.93 ± 0.08 | 97.02 |
-| CIFAR-10 | SALU + SWALU | 3 | 97.08 ± 0.05 | 97.05 ± 0.06 | 97.24 |
-| CIFAR-10 | SALU + GALU | 3 | **97.19 ± 0.11** | **97.17 ± 0.10** | **97.35** |
-| CIFAR-100 | BN + ReLU | 3 | 80.68 ± 0.64 | 80.89 ± 0.25 | 81.26 |
-| CIFAR-100 | BN + SWALU | 3 | 81.13 ± 0.24 | 81.14 ± 0.21 | 81.33 |
-| CIFAR-100 | SALU + ReLU | 3 | 80.37 ± 0.07 | 79.97 ± 0.19 | 80.45 |
-| CIFAR-100 | GN + ReLU | 3 | 80.75 ± 0.28 | 79.95 ± 0.27 | 80.97 |
-| CIFAR-100 | GN + SWALU | 3 | 82.53 ± 0.34 | 81.69 ± 0.28 | 82.78 |
-| CIFAR-100 | SALU + GALU | 3 | 82.95 ± 0.31 | **82.37 ± 0.34** | 83.25 |
-| CIFAR-100 | SALU + SWALU | 3 | **83.02 ± 0.29** | 82.36 ± 0.31 | **83.27** |
+| CIFAR-10 | BN + ReLU | Multiple | 96.95 ± 0.09 | 96.93 ± 0.08 | 97.02 |
+| CIFAR-10 | SALU + SWALU | Multiple | 97.08 ± 0.05 | 97.05 ± 0.06 | 97.24 |
+| CIFAR-10 | SALU + GALU | Multiple | **97.19 ± 0.11** | **97.17 ± 0.10** | **97.35** |
+| CIFAR-100 | BN + ReLU | Multiple | 80.68 ± 0.64 | 80.89 ± 0.25 | 81.26 |
+| CIFAR-100 | BN + SWALU | Multiple | 81.13 ± 0.24 | 81.14 ± 0.21 | 81.33 |
+| CIFAR-100 | SALU + ReLU | Multiple | 80.37 ± 0.07 | 79.97 ± 0.19 | 80.45 |
+| CIFAR-100 | GN + ReLU | Multiple | 80.75 ± 0.28 | 79.95 ± 0.27 | 80.97 |
+| CIFAR-100 | GN + SWALU | Multiple | 82.53 ± 0.34 | 81.69 ± 0.28 | 82.78 |
+| CIFAR-100 | SALU + GALU | Multiple | 82.95 ± 0.31 | **82.37 ± 0.34** | 83.25 |
+| CIFAR-100 | SALU + SWALU | Multiple | **83.02 ± 0.29** | 82.36 ± 0.31 | **83.27** |
+
+Results reported as mean ± standard deviation summarize runs with different
+random seeds. The exact number of runs and seed values are not specified here.
+
+The deterministic CIFAR-100 result of 83.42% is reported separately as an
+individual run.
 
 ResNet-18 experiments use 300 epochs. **Best** is a separately reported best
 observed record and is not necessarily the maximum of the three runs summarized
@@ -85,7 +91,7 @@ below.
 
 | Configuration | Execution mode | Runs | EMA Top-1 (%) |
 |---|---|---:|---:|
-| SALU + SWALU | Non-deterministic | 3 | 83.02 ± 0.29 |
+| SALU + SWALU | Non-deterministic | Multiple | 83.02 ± 0.29 |
 | SALU + SWALU | Deterministic | 1 | **83.42** |
 
 - **Non-deterministic cohort:** `deterministic: false`, `cudnn_benchmark: true`.
@@ -105,16 +111,22 @@ this EMA smoothing choice.
 
 | Dataset | Stabilizer + activation | Runs | EMA Top-1 (%) | Main Top-1 (%) | Best Top-1 (%) |
 |---|---|---:|---:|---:|---:|
-| CIFAR-10 | LN + GELU | 3 | 91.43 ± 0.31 | 91.29 ± 0.29 | 91.61 |
-| CIFAR-10 | SALU + GELU | 3 | 91.39 ± 0.21 | 91.22 ± 0.11 | 91.63 |
-| CIFAR-10 | SALU + GALU | 3 | 91.70 ± 0.17 | 91.47 ± 0.15 | 91.89 |
-| CIFAR-10 | SALU + SWALU | 3 | **91.91 ± 0.19** | **91.92 ± 0.16** | **92.11** |
-| CIFAR-100 | DyT + GELU | 3 | 65.32 ± 0.49 | 64.15 ± 0.70 | 65.85 |
-| CIFAR-100 | RMSNorm + GELU | 3 | 67.86 ± 0.36 | 66.76 ± 0.34 | 68.20 |
-| CIFAR-100 | LN + GELU | 3 | 68.66 ± 0.13 | 67.26 ± 0.25 | 68.76 |
-| CIFAR-100 | SALU + GALU | 3 | 70.29 ± 0.11 | **69.64 ± 0.29** | 70.37 |
-| CIFAR-100 | SALU + SWALU | 3 | 70.11 ± 0.48 | 69.22 ± 0.43 | 70.56 |
-| CIFAR-100 | SALU + GELU | 3 | **70.39 ± 0.41** | 69.56 ± 0.51 | **70.82** |
+| CIFAR-10 | LN + GELU | Multiple | 91.43 ± 0.31 | 91.29 ± 0.29 | 91.61 |
+| CIFAR-10 | SALU + GELU | Multiple | 91.39 ± 0.21 | 91.22 ± 0.11 | 91.63 |
+| CIFAR-10 | SALU + GALU | Multiple | 91.70 ± 0.17 | 91.47 ± 0.15 | 91.89 |
+| CIFAR-10 | SALU + SWALU | Multiple | **91.91 ± 0.19** | **91.92 ± 0.16** | **92.11** |
+| CIFAR-100 | DyT + GELU | Multiple | 65.32 ± 0.49 | 64.15 ± 0.70 | 65.85 |
+| CIFAR-100 | RMSNorm + GELU | Multiple | 67.86 ± 0.36 | 66.76 ± 0.34 | 68.20 |
+| CIFAR-100 | LN + GELU | Multiple | 68.66 ± 0.13 | 67.26 ± 0.25 | 68.76 |
+| CIFAR-100 | SALU + GALU | Multiple | 70.29 ± 0.11 | **69.64 ± 0.29** | 70.37 |
+| CIFAR-100 | SALU + SWALU | Multiple | 70.11 ± 0.48 | 69.22 ± 0.43 | 70.56 |
+| CIFAR-100 | SALU + GELU | Multiple | **70.39 ± 0.41** | 69.56 ± 0.51 | **70.82** |
+
+Results reported as mean ± standard deviation summarize runs with different
+random seeds. The exact number of runs and seed values are not specified here.
+
+The deterministic CIFAR-100 result of 83.42% is reported separately as an
+individual run.
 
 All compact ViT configurations, including baselines, are rerun in the same
 implementation for **200 epochs**. **Best** is the maximum across the three
