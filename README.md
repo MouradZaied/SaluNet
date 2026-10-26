@@ -229,6 +229,13 @@ Review `requirements.txt` and `pyproject.toml` for dependency requirements. GPU 
 ## Training
 
 Run commands from the repository root. Review dataset locations, batch size, logging settings, seed, and output paths in the selected YAML file before launching.
+
+### SaluNet-C / CIFAR-10
+
+```bash
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar10/salunet-c-18_cifar10.yaml
+```
+
 ### SaluNet-C / CIFAR-100
 
 Reference configuration with deterministic execution (seed 142):
