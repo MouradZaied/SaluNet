@@ -31,7 +31,7 @@ dist/
 Thumbs.db
 
 # Datasets
-data/
+/data/
 datasets/
 imagenet/
 ImageNet/
