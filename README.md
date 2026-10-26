@@ -234,7 +234,7 @@ Run commands from the repository root. Review dataset locations, batch size, log
 Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml
+python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml
 ```
 
 Non-deterministic configuration with SALU/SWALU parameter logging:
@@ -265,13 +265,13 @@ python scripts/eval.py --help
 Results are evaluated in FP32 on the 10,000 CIFAR-100 test images.
 FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
 
-Configuration: [`salunet-c-18_cifar100_salu_swalu.yaml`](configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml).
+Configuration: [`salunet-c-18_cifar100.yaml`](configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml).
 
 Download the checkpoint and save it as `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
 
 ```bash
 python scripts/eval.py \
-  --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml \
+  --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml \
   --checkpoint checkpoints/cifar100_salu_swalu/best_ema_model.pth \
   --normalization salu \
   --activation swalu \
