@@ -337,6 +337,27 @@ python scripts/eval.py \
   --precision fp32
 ```
 
+### SaluNet-T / CIFAR-100 evaluation
+
+Download the [EMA checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing)
+and save it in the repository root as
+`best_ema_model_SaluNet-T_C100_SALU_GELU_70.33.pth`, then run:
+
+```bash
+python scripts/eval.py \
+  --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_gelu.yaml \
+  --checkpoint best_ema_model_SaluNet-T_C100_SALU_GELU_70.33.pth \
+  --normalization salu \
+  --activation gelu \
+  --weights selected \
+  --batch-size 512 \
+  --num-workers 2 \
+  --device cuda \
+  --precision fp32
+```
+
+Expected FP32 results: **70.33% Top-1**, **90.09% Top-5**.
+
 ## Evaluation and reproducibility
 
 Use `scripts/eval.py` with the options shown by `--help`. Evaluate checkpoints with the same architecture, activation definitions, positivity policy, clipping settings, and preprocessing as the corresponding training run. Distinguish ordinary model weights from exponential moving average (EMA) weights when reporting accuracy.
