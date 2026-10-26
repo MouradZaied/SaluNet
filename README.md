@@ -280,15 +280,27 @@ python scripts/eval.py --help
 | --- | --- | --- | --- | --- | --- |
 | SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) |
 | SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) |
+| SaluNet-T (SALU + GELU) | CIFAR-100 | EMA | 70.33% | 90.09% | [Checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing) |
 
-Both released checkpoints were verified in FP32 on the respective
+
+
+All three released checkpoints were verified in FP32 on the respective
 10,000-image test sets.
 
-For CIFAR-10, the best observed accuracy was 97.35%; its checkpoint is
-no longer available. The released checkpoint achieved 97.27% in a separate run.
+- **SaluNet-C-18 / CIFAR-10 (SALU + GALU):** the released EMA checkpoint
+  achieves 97.27% Top-1 and 99.89% Top-5. The best observed accuracy was
+  97.35%, but its checkpoint is no longer available.
 
-For CIFAR-100, FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
+- **SaluNet-C-18 / CIFAR-100 (SALU + SWALU):** the released EMA checkpoint
+  achieves 83.42% Top-1 and 96.25% Top-5 in FP32. FP16 evaluation gives
+  83.43% Top-1 and 96.25% Top-5.
 
+- **SaluNet-T / CIFAR-100 (SALU + GELU):** the released EMA checkpoint
+  achieves 70.33% Top-1 and 90.09% Top-5 in FP32. It represents an
+  individual run and does not correspond to the best observed
+  SALU + GELU result of 70.82%.
+
+  
 ### CIFAR-10 evaluation
 
 Download the CIFAR-10 checkpoint into the repository root as
