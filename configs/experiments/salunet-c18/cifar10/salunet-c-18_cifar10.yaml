@@ -1,14 +1,9 @@
-experiment_name: cifar10_resnet18_salu_swalu_freeze_zero
+experiment_name: cifar10_resnet18_salu_galu_freeze_zero
 seed: 42
 deterministic: false
 num_classes: 10
 epochs: 300
-source_notes:
-  from: user-tested CIFAR-10 config, with legacy GaLu formula option
-  formula_note: Use this if the tested notebook/script class named GaLu actually used
-    0.5*x*(1+SALU(x)).
-  compile_policy_v8_5: CIFAR ResNet18 uses v7-style torch.compile(model) with no explicit
-    mode/dynamic/fullgraph kwargs.
+
 data:
   name: cifar10
   data_dir: ./data
@@ -35,7 +30,7 @@ model:
 signal_control:
   type: salu
 activation:
-  type: swalu
+  type: galu
   a_init: 1.0
   b_init: 1.0
   positivity: abs
@@ -79,7 +74,7 @@ ema:
   decay: 0.999
 checkpoint:
   save_checkpoints: true
-  save_dir: ./checkpoints/cifar10_resnet18_salu_swalu_freeze_zero
+  save_dir: ./checkpoints/cifar10_resnet18_salu_galu_freeze_zero
   save_raw_best: true
   save_ema_best: true
   save_last: true
@@ -106,15 +101,15 @@ logging:
     enabled: true
     project: salunet-c18-cifar10
     entity: null
-    name: cifar10_resnet18_salu_swalu_freeze_zero
+    name: cifar10_resnet18_salu_galu_freeze_zero
     tags:
     - cifar10
     - resnet18
     - salu
-    - swalu
+    - galu
     - ema
     - tested-source
-    - drop_path_0.05
+    - drop_path_0.005
     - legacy_galu_formula
     log_model: false
     offline: false
