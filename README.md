@@ -241,13 +241,13 @@ python scripts/train.py --config configs/experiments/salunet-c-18/cifar10/salune
 Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml
+python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml
 ```
 
 Non-deterministic configuration with SALU/SWALU parameter logging:
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
+python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
 ```
 
 The second configuration records the evolution of parameters `a` and `b`.
@@ -267,14 +267,39 @@ python scripts/eval.py --help
 
 | Model | Dataset | Weights | Top-1 | Top-5 | Download |
 | --- | --- | --- | --- | --- | --- |
+| SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) |
 | SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) |
 
-Results are evaluated in FP32 on the 10,000 CIFAR-100 test images.
-FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
+Both released checkpoints were verified in FP32 on the respective
+10,000-image test sets.
 
-Configuration: [`salunet-c-18_cifar100.yaml`](configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml).
+For CIFAR-10, the best observed accuracy was 97.35%; its checkpoint is
+no longer available. The released checkpoint achieved 97.27% in a separate run.
 
-Download the checkpoint and save it as `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
+For CIFAR-100, FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
+
+### CIFAR-10 evaluation
+
+Download the CIFAR-10 checkpoint into the repository root as
+`best_ema_model_SaluNet-C-18_C10_97.27.pth`, then run:
+
+```bash
+python scripts/eval.py \
+  --config configs/experiments/salunet-c-18/cifar10/salunet-c-18_cifar10.yaml \
+  --checkpoint best_ema_model_SaluNet-C-18_C10_97.27.pth \
+  --normalization salu \
+  --activation galu \
+  --weights selected \
+  --batch-size 512 \
+  --num-workers 2 \
+  --device cuda \
+  --precision fp32
+```
+
+### CIFAR-100 evaluation
+
+Download the CIFAR-100 checkpoint and save it as
+`checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
 
 ```bash
 python scripts/eval.py \
@@ -299,7 +324,7 @@ Record the configuration, random seed, software versions, device, and checkpoint
 
 | Location | Contents |
 |---|---|
-| `configs/experiments/salunet-c-18/` | ResNet-18 experiment configurations |
+| `configs/experiments/salunet-c18/` | ResNet-18 experiment configurations |
 | `configs/experiments/salunet-t/` | Vision Transformer experiment configurations |
 | `configs/models/` | Model configuration files |
 | `scripts/train.py` | Training entry point |
