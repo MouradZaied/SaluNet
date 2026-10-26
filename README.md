@@ -234,13 +234,13 @@ Run commands from the repository root. Review dataset locations, batch size, log
 Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml
 ```
 
 Non-deterministic configuration with SALU/SWALU parameter logging:
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
 ```
 
 The second configuration records the evolution of parameters `a` and `b`.
@@ -265,13 +265,13 @@ python scripts/eval.py --help
 Results are evaluated in FP32 on the 10,000 CIFAR-100 test images.
 FP16 evaluation gives 83.43% Top-1 and 96.25% Top-5.
 
-Configuration: [`salunet-c-18_cifar100.yaml`](configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml).
+Configuration: [`salunet-c-18_cifar100.yaml`](configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml).
 
 Download the checkpoint and save it as `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
 
 ```bash
 python scripts/eval.py \
-  --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100.yaml \
+  --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml \
   --checkpoint checkpoints/cifar100_salu_swalu/best_ema_model.pth \
   --normalization salu \
   --activation swalu \
@@ -292,7 +292,7 @@ Record the configuration, random seed, software versions, device, and checkpoint
 
 | Location | Contents |
 |---|---|
-| `configs/experiments/salunet-c18/` | ResNet-18 experiment configurations |
+| `configs/experiments/salunet-c-18/` | ResNet-18 experiment configurations |
 | `configs/experiments/salunet-t/` | Vision Transformer experiment configurations |
 | `configs/models/` | Model configuration files |
 | `scripts/train.py` | Training entry point |
