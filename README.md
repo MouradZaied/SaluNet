@@ -152,15 +152,10 @@ validation-only checkpoint selection.
   the higher evaluation resolution.
 - C-50 evaluation uses bilinear resizing: resize 240 / crop 224, or resize
   320 / crop 288. Its SWALU outputs are clamped to [-10, 10].
+- Training uses offline-resized images; evaluation uses the original
+ImageNet-1K validation images. See [ImageNet training data preparation](#imagenet-training-data-preparation)
+for the preprocessing procedure.
   
-**ImageNet preprocessing:** training images were resized offline to a
-shorter-side length of 320 pixels, preserving aspect ratio with Lanczos
-interpolation. JPEG images were saved at quality 95 with chroma subsampling
-disabled. Training augmentations were then applied online.
-
-Evaluation used the original ImageNet-1K validation images, without offline
-resizing. The evaluation scripts apply resizing and center cropping online,
-using the settings specified in each evaluation command.
 ### Physical batch-size robustness
 
 | Physical batch size | ResNet-18, BN + ReLU, CIFAR-100 | SaluNet-C-18, SALU + SWALU, CIFAR-100 | SaluNet-C-18, SALU + GALU, CIFAR-10 |
