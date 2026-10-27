@@ -4,7 +4,7 @@
 
 SaluNet explores replacing feature normalization layers with **SALU**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
 
-This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. Standalone PyTorch reference scripts are also provided for SaluNet-C-50 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
+This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. PyTorch reference scripts are also provided for SaluNet-C-50 and SaluNet-T-B/16 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
 
 ![SaluNet teaser: PReLU dynamics on CIFAR-10, SALU geometry, and batch-size resilience on CIFAR-100.](assets/teaser.png)
 
@@ -255,21 +255,60 @@ python scripts/train.py --config configs/experiments/salunet-t/cifar10/salunet-t
 python scripts/train.py --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_gelu.yaml
 ```
 
-To inspect command-line options:
+### SaluNet-C-50 / ImageNet-1K training
+
+The [reference PyTorch script](imagenet/salunet-c-50/train_salunet_c50_reference.py)
+uses clamped SWALU and contains its training configuration directly in the file.
+Before launching, edit the two `ImageFolder` paths (default:
+`/root/imagenet/train` and `/root/imagenet/val`) to point to your datasets,
+and review the W&B project, checkpoint output paths, batch size, and worker count.
+The reference recipe uses 150 epochs, physical batch size 180, and five-step
+gradient accumulation (effective batch size 900 on one GPU).
+
+Run from the repository root:
+
+```bash
+python imagenet/salunet-c-50/train_salunet_c50_reference.py
+```
+
+This standalone script does not accept the CIFAR `--config` option.
+Its validation transform uses resize 256 / crop 224 during training;
+the released checkpoint is evaluated below with resize 240 / crop 224
+and resize 320 / crop 288.
+
+### SaluNet-T-B/16 / ImageNet-1K training
+
+This implementation builds on the [Derf ViT codebase](https://github.com/zlab-princeton/Derf/tree/8dd9ea3cc70370f423a80a80af6f72466bc621db/ViT).
+Replace its `ViT/main.py` with our supplied version, and add `salu.py`
+and `test.py` to the same directory. The remaining upstream files are required. Follow the complete
+[setup instructions](imagenet/salunet-t-b16/README.md) before running this command.
+
+Our reference experiment uses a single GPU, a batch size of 128,
+and no gradient accumulation. Run from the Derf `ViT` directory:
+
+```bash
+python main.py \
+  --model vit_base_patch16_224 \
+  --batch_size 128 \
+  --lr 0.000125 \
+  --model_ema true \
+  --model_ema_eval true \
+  --model_ema_decay 0.999 \
+  --data_path /path/to/imagenet \
+  --output_dir outputdir2/ \
+  --normtype salu
+```
+
+With `--normtype salu`, LayerNorm is replaced by SALU and GELU by SWALU.
+The reference run uses 300 epochs. The upstream large-batch recipe is
+documented separately in the Derf repository.
+
+To inspect the unified CIFAR command-line options:
 
 ```bash
 python scripts/train.py --help
 python scripts/eval.py --help
 ```
-
-
-### SaluNet-T-B/16 / ImageNet-1K
-
-See the [ImageNet instructions](imagenet/salunet-t-b16/README.md)
-for the upstream Derf setup, the batch-128 training command,
-and evaluation at 224 × 224 and 288 × 288.
-
-
 
 ## Pretrained checkpoints
 
@@ -403,32 +442,14 @@ python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
 Replace `/path/to/imagenet/val` with the ImageNet-1K validation directory,
 organized into class subdirectories. Both evaluations use bilinear resizing.
 
-### SaluNet-T-B/16 / ImageNet-1K training
+### SaluNet-T-B/16 / ImageNet-1K evaluation
 
-This implementation builds on the [Derf ViT codebase](https://github.com/zlab-princeton/Derf/tree/main/ViT).
-Replace its `ViT/main.py` with our supplied version, and add `salu.py`
-and `test.py` to the same directory. The remaining upstream files are required.
-
-Our reference experiment uses a single GPU, a batch size of 128,
-and no gradient accumulation. Run from the Derf `ViT` directory:
-
-```bash
-python main.py \
-  --model vit_base_patch16_224 \
-  --batch_size 128 \
-  --lr 0.000125 \
-  --model_ema true \
-  --model_ema_eval true \
-  --model_ema_decay 0.999 \
-  --data_path /path/to/imagenet \
-  --output_dir outputdir2/ \
-  --normtype salu
-```
-
-With `--normtype salu`, LayerNorm is replaced by SALU and GELU by SWALU.
-The reference run uses 300 epochs. The upstream large-batch recipe is
-documented separately in the Derf repository.
-
+Download the [EMA checkpoint](https://drive.google.com/file/d/1tFNHfnQCrepLL7jry7ugfk4QpbIqX_P-/view?usp=sharing)
+and follow the [ViT-B/16 evaluation instructions](imagenet/salunet-t-b16/README.md).
+Save the file as `salunet-t-b16-imagenet1k-salu-swalu-ema.pth` in the
+Derf `ViT` directory and use that filename for `--checkpoint`.
+The expected results are **80.12% / 94.79%** Top-1 / Top-5 at 224 × 224
+and **80.28% / 94.75%** at 288 × 288.
 
 ## Evaluation and reproducibility
 
@@ -455,6 +476,7 @@ Record the configuration, random seed, software versions, device, and checkpoint
 | `src/salunet/signal_control/` | Signal-control alternatives |
 | `src/salunet/data/` | Dataset modules and loaders |
 | `imagenet/salunet-c-50/` | Standalone ImageNet reference scripts and results |
+| `imagenet/salunet-t-b16/` | Derf-based ViT-B/16 scripts and setup instructions |
 | `LICENSES/` | Upstream license notices |
 
 ## Acknowledgments
