@@ -183,8 +183,8 @@ validation-only checkpoint selection.
 | 2 | 30.90 | 79.12 | 95.57 |
 | 1 | 1.10 | 76.23 | 93.44 |
 
-These are retained point estimates from the batch-size sweep, not three-run
-means. Batch sizes of at least 32 were explored with multiple seeds; settings
+The table reports measured test accuracies from the batch-size experiments,
+rather than averages across multiple seeds. Batch sizes of at least 8 were explored with multiple seeds; settings
 below 32 use one completed run per configuration. The learning-rate policy is
 adapted identically for the compared models within each dataset and batch size.
 These sweep records should not be substituted for the primary aggregate results.
