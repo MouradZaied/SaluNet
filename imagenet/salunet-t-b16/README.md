@@ -57,13 +57,15 @@ The reported results use EMA weights:
 | 224 × 224 | 256 | 224 | 80.12 | 94.79 |
 | 288 × 288 | 320 | 288 | 80.28 | 94.75 |
 
-Set `--checkpoint` to the checkpoint file you want to evaluate.
+Download the [EMA checkpoint](https://drive.google.com/file/d/1tFNHfnQCrepLL7jry7ugfk4QpbIqX_P-/view?usp=sharing)
+and save it in the Derf `ViT` directory as
+`salunet-t-b16-imagenet1k-salu-swalu-ema.pth`.
 
 ### Evaluation at 224 × 224
 
 ```bash
 python test.py \
-  --checkpoint /path/to/checkpoint-best-ema.pth \
+  --checkpoint salunet-t-b16-imagenet1k-salu-swalu-ema.pth \
   --checkpoint_key model_ema \
   --model vit_base_patch16_224 \
   --batch_size 128 \
@@ -80,7 +82,7 @@ python test.py \
 
 ```bash
 python test.py \
-  --checkpoint /path/to/checkpoint-best-ema.pth \
+  --checkpoint salunet-t-b16-imagenet1k-salu-swalu-ema.pth \
   --checkpoint_key model_ema \
   --model vit_base_patch16_224 \
   --batch_size 128 \
