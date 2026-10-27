@@ -299,6 +299,21 @@ Its validation transform uses resize 256 / crop 224 during training;
 the released checkpoint is evaluated below with resize 240 / crop 224
 and resize 320 / crop 288.
 
+
+### Experimental SaluNet-C-50 variant
+
+An [experimental implementation](imagenet/salunet-c-50-experimental/README.md)
+removes the SWALU output clamp and uses `abs + eps` for its positive parameters.
+It also fixes the final gradient accumulation window, EMA updates, mixed-label
+training accuracy, and checkpoint replacement.
+
+This variant has not yet been validated on ImageNet. The reported results
+correspond to the reference implementation with clamped SWALU.
+
+Independent evaluations and shared training logs are welcome.
+
+
+
 ### SaluNet-T-B/16 / ImageNet-1K training
 
 This implementation builds on the [Derf ViT codebase](https://github.com/zlab-princeton/Derf/tree/8dd9ea3cc70370f423a80a80af6f72466bc621db/ViT).
