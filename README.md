@@ -4,7 +4,7 @@
 
 SaluNet explores replacing feature normalization layers with **SALU**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
 
-This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. The results section also summarizes the ImageNet-1K experiments reported in the manuscript.
+This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. Standalone PyTorch reference scripts are also provided for SaluNet-C-50 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
 
 ![SaluNet teaser: PReLU dynamics on CIFAR-10, SALU geometry, and batch-size resilience on CIFAR-100.](assets/teaser.png)
 
@@ -57,8 +57,8 @@ For the ResNet experiments, gate parameters are shared across activation calls w
 
 All accuracies are percentages. **Main** denotes the directly optimized model;
 **EMA** denotes the exponential moving average model. CIFAR EMA and Main columns
-report mean ± sample standard deviation of per-run best accuracies over three
-independent runs.
+report mean ± sample standard deviation of per-run best accuracies across
+different random seeds. Exact run counts and seed lists are not specified here.
 
 ### ResNet-18 / CIFAR
 
@@ -75,17 +75,9 @@ independent runs.
 | CIFAR-100 | SALU + GALU | Multiple | 82.95 ± 0.31 | **82.37 ± 0.34** | 83.25 |
 | CIFAR-100 | SALU + SWALU | Multiple | **83.02 ± 0.29** | 82.36 ± 0.31 | **83.27** |
 
-Results reported as mean ± standard deviation summarize runs with different
-random seeds. The exact number of runs and seed values are not specified here.
-
-The deterministic CIFAR-100 result of 83.42% is reported separately as an
-individual run.
-
-ResNet-18 experiments use 300 epochs. **Best** is a separately reported best
-observed record and is not necessarily the maximum of the three runs summarized
-in the means. The 83.27% entry for SALU + SWALU on CIFAR-100 refers specifically
-to the three-run cohort. The additional deterministic run is reported separately
-below.
+ResNet-18 experiments use 300 epochs. **Best** denotes a separately reported
+best observed result and need not belong to the runs summarized in the means.
+The additional deterministic CIFAR-100 run is distinguished below.
 
 #### SALU + SWALU / CIFAR-100: execution settings
 
@@ -98,7 +90,7 @@ below.
 - **Deterministic run:** `deterministic: true`, `cudnn_benchmark: false`.
 
 The deterministic run is reported separately because its execution settings
-differ from those of the three-run cohort. It is excluded from that cohort's
+differ from those of the non-deterministic cohort. It is excluded from that cohort's
 mean and sample standard deviation. The best EMA accuracy within the cohort is
 83.27%. A single run does not establish an accuracy advantage of deterministic
 execution.
@@ -122,14 +114,8 @@ this EMA smoothing choice.
 | CIFAR-100 | SALU + SWALU | Multiple | 70.11 ± 0.48 | 69.22 ± 0.43 | 70.56 |
 | CIFAR-100 | SALU + GELU | Multiple | **70.39 ± 0.41** | 69.56 ± 0.51 | **70.82** |
 
-Results reported as mean ± standard deviation summarize runs with different
-random seeds. The exact number of runs and seed values are not specified here.
-
-The deterministic CIFAR-100 result of 83.42% is reported separately as an
-individual run.
-
 All compact ViT configurations, including baselines, are rerun in the same
-implementation for **200 epochs**. **Best** is the maximum across the three
+implementation for **200 epochs**. **Best** is the maximum across the summarized
 runs and both model variants. The ordinary learning rate is 0.0005 on CIFAR-10
 and 0.001 on CIFAR-100. DyT uses an empirically selected initial alpha of 1.
 
@@ -146,7 +132,7 @@ validation-only checkpoint selection.
 
 | Model | Training epochs | Physical / effective batch | Evaluation crop | EMA Top-1 (%) | EMA Top-5 (%) |
 |---|---:|---:|---:|---:|---:|
-| SaluNet-C-50 | 150, with 4N training views per epoch | 180 / 900 | 224 × 224 | 79.41 | 94.50 |
+| SaluNet-C-50 | 150, with 4N training views per epoch | 180 / 900 | 224 × 224 | 79.59 | 94.59 |
 | SaluNet-C-50 | Same checkpoint | 180 / 900 | 288 × 288 | 80.16 | 94.96 |
 | SaluNet-T-B/16 | 300 | 128 / 128 | 224 × 224 | 80.12 | 94.79 |
 | SaluNet-T-B/16 | Same checkpoint | 128 / 128 | 288 × 288 | 80.28 | 94.75 |
@@ -164,6 +150,8 @@ validation-only checkpoint selection.
 - The 288 × 288 evaluations reuse the selected EMA checkpoints **without further
   training or fine-tuning**. The ViT positional embedding is interpolated for
   the higher evaluation resolution.
+- C-50 evaluation uses bilinear resizing: resize 240 / crop 224, or resize
+  320 / crop 288. Its SWALU outputs are clamped to [-10, 10].
 - Training uses an offline pre-resized ImageNet copy. The reported C-50 results
   are recomputed on the original 50,000 validation images. Evaluation resolution
   and preprocessing must be matched when comparing published results.
@@ -185,7 +173,7 @@ validation-only checkpoint selection.
 
 The table reports measured test accuracies from the batch-size experiments,
 rather than averages across multiple seeds. Batch sizes of at least 8 were explored with multiple seeds; settings
-below 32 use one completed run per configuration. The learning-rate policy is
+below 8 use one completed run per configuration. The learning-rate policy is
 adapted identically for the compared models within each dataset and batch size.
 These sweep records should not be substituted for the primary aggregate results.
 
@@ -200,7 +188,7 @@ These sweep records should not be substituted for the primary aggregate results.
 | DyT + SWALU | 81.42 ± 0.15 | 79.30 ± 0.06 | 81.58 |
 
 These comparisons are retained from the original experiment set. Means and
-sample standard deviations use three independent runs; Best is the retained
+sample standard deviations summarize runs with different seeds; Best is the retained
 best EMA record. They are reported separately from the updated SaluNet
 aggregate results.
 
@@ -229,26 +217,31 @@ Review `requirements.txt` and `pyproject.toml` for dependency requirements. GPU 
 ## Training
 
 Run commands from the repository root. Review dataset locations, batch size, logging settings, seed, and output paths in the selected YAML file before launching.
+
+### SaluNet-C / CIFAR-10
+
+```bash
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar10/salunet-c-18_cifar10.yaml
+```
+
 ### SaluNet-C / CIFAR-100
 
 Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu.yaml
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml
 ```
 
 Non-deterministic configuration with SALU/SWALU parameter logging:
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
 ```
 
 The second configuration records the evolution of parameters `a` and `b`.
 It is a separate experiment and is not intended to reproduce the 83.42% result.
 
 Additional configurations are available under `configs/experiments/`, including CIFAR-10 experiments and alternative normalization/activation combinations. Use the configuration associated with the experiment you intend to reproduce; different configurations may use different recipes.
-
-
 
 ### SaluNet-T / CIFAR-10
 
@@ -262,17 +255,12 @@ python scripts/train.py --config configs/experiments/salunet-t/cifar10/salunet-t
 python scripts/train.py --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_gelu.yaml
 ```
 
-Alternative configurations for other normalization and activation combinations
-are available in the corresponding dataset directories.
-
-
 To inspect command-line options:
 
 ```bash
 python scripts/train.py --help
 python scripts/eval.py --help
 ```
-
 
 ## Pretrained checkpoints
 
@@ -281,29 +269,18 @@ python scripts/eval.py --help
 | SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) |
 | SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) |
 | SaluNet-T (SALU + GELU) | CIFAR-100 | EMA | 70.33% | 90.09% | [Checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing) |
+| SaluNet-T (SALU + GALU) | CIFAR-100 | EMA | 70.36% | 89.08% | [Checkpoint](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing) |
 
+The four CIFAR checkpoints above were verified in FP32 on their respective
+10,000-image test sets. Released checkpoints are distinguished from best
+observed results: the CIFAR-10 C-18 checkpoint at 97.35% is no longer available,
+and the T / SALU + GELU checkpoint at 70.33% is a separate run from the
+70.82% best observed result. For C-18 / CIFAR-100, FP16 evaluation gives
+83.43% Top-1 and 96.25% Top-5.
 
+### SaluNet-C-18 / CIFAR-10 evaluation
 
-All four released checkpoints were verified in FP32 on the respective
-10,000-image test sets.
-
-- **SaluNet-C-18 / CIFAR-10 (SALU + GALU):** the released EMA checkpoint
-  achieves 97.27% Top-1 and 99.89% Top-5. The best observed accuracy was
-  97.35%, but its checkpoint is no longer available.
-
-- **SaluNet-C-18 / CIFAR-100 (SALU + SWALU):** the released EMA checkpoint
-  achieves 83.42% Top-1 and 96.25% Top-5 in FP32. FP16 evaluation gives
-  83.43% Top-1 and 96.25% Top-5.
-
-- **SaluNet-T / CIFAR-100 (SALU + GELU):** the released EMA checkpoint
-  achieves 70.33% Top-1 and 90.09% Top-5 in FP32. It represents an
-  individual run and does not correspond to the best observed
-  SALU + GELU result of 70.82%.
-
-  
-### CIFAR-10 evaluation
-
-Download the CIFAR-10 checkpoint into the repository root as
+Download the [EMA checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) into the repository root as
 `best_ema_model_SaluNet-C-18_C10_97.27.pth`, then run:
 
 ```bash
@@ -319,9 +296,9 @@ python scripts/eval.py \
   --precision fp32
 ```
 
-### CIFAR-100 evaluation
+### SaluNet-C-18 / CIFAR-100 evaluation
 
-Download the CIFAR-100 checkpoint and save it as
+Download the [EMA checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) and save it as
 `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
 
 ```bash
@@ -337,7 +314,7 @@ python scripts/eval.py \
   --precision fp32
 ```
 
-### SaluNet-T / CIFAR-100 evaluation
+### SaluNet-T / CIFAR-100 — SALU + GELU evaluation
 
 Download the [EMA checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing)
 and save it in the repository root as
@@ -356,11 +333,10 @@ python scripts/eval.py \
   --precision fp32
 ```
 
-Expected FP32 results: **70.33% Top-1**, **90.09% Top-5**.
-
 ### SaluNet-T / CIFAR-100 — SALU + GALU evaluation
 
-Download the checkpoint into the repository root as
+Download the [EMA checkpoint](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing)
+into the repository root as
 `best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth`, then run:
 
 ```bash
@@ -376,12 +352,51 @@ python scripts/eval.py \
   --precision fp32
 ```
 
-Expected FP32 results: **70.36% Top-1**, **89.08% Top-5**.
+### SaluNet-C-50 / ImageNet-1K evaluation
 
+The model contains 53 SALU modules and 17 independent clamped-SWALU
+modules. EMA weights were selected at epoch 118. No fine-tuning was
+performed after checkpoint selection.
+
+Download the [EMA checkpoint](https://drive.google.com/file/d/11-xtu1FyW6g-T53kRnTY3t2TjEvnGeVJ/view?usp=drive_link)
+and save it in the repository root as
+`salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth`.
+
+| Resolution | Resize | Center crop | Top-1 (%) | Top-5 (%) |
+| --- | --- | --- | --- | --- |
+| 224 × 224 | 240 | 224 | 79.59 | 94.59 |
+| 288 × 288 | 320 | 288 | 80.16 | 94.96 |
+
+Evaluation at 224 × 224:
+
+```bash
+python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
+  --checkpoint salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth \
+  --data-root /path/to/imagenet/val \
+  --resize-size 240 \
+  --crop-size 224 \
+  --batch-size 128 \
+  --num-workers 4
+```
+
+Evaluation at 288 × 288:
+
+```bash
+python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
+  --checkpoint salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth \
+  --data-root /path/to/imagenet/val \
+  --resize-size 320 \
+  --crop-size 288 \
+  --batch-size 128 \
+  --num-workers 4
+```
+
+Replace `/path/to/imagenet/val` with the ImageNet-1K validation directory,
+organized into class subdirectories. Both evaluations use bilinear resizing.
 
 ## Evaluation and reproducibility
 
-Use `scripts/eval.py` with the options shown by `--help`. Evaluate checkpoints with the same architecture, activation definitions, positivity policy, clipping settings, and preprocessing as the corresponding training run. Distinguish ordinary model weights from exponential moving average (EMA) weights when reporting accuracy.
+For CIFAR, use `scripts/eval.py` with the options shown by `--help`. Evaluate checkpoints with the same architecture, activation definitions, positivity policy, clipping settings, and preprocessing as the corresponding training run. Distinguish ordinary model weights from exponential moving average (EMA) weights when reporting accuracy.
 
 Record the configuration, random seed, software versions, device, and checkpoint selection rule for each experiment. A fixed seed alone does not guarantee identical results across software versions or devices. Deterministic execution and performance-oriented CUDA settings are separate choices.
 
@@ -389,7 +404,7 @@ Record the configuration, random seed, software versions, device, and checkpoint
 
 | Location | Contents |
 |---|---|
-| `configs/experiments/salunet-c18/` | ResNet-18 experiment configurations |
+| `configs/experiments/salunet-c-18/` | ResNet-18 experiment configurations |
 | `configs/experiments/salunet-t/` | Vision Transformer experiment configurations |
 | `configs/models/` | Model configuration files |
 | `scripts/train.py` | Training entry point |
@@ -402,6 +417,8 @@ Record the configuration, random seed, software versions, device, and checkpoint
 | `src/salunet/optim/` | Parameter groups and learning-rate schedules |
 | `src/salunet/recipes/` | Training utilities, losses, mixing, and EMA |
 | `src/salunet/signal_control/` | Signal-control alternatives |
+| `src/salunet/data/` | Dataset modules and loaders |
+| `imagenet/salunet-c-50/` | Standalone ImageNet reference scripts and results |
 | `LICENSES/` | Upstream license notices |
 
 ## Acknowledgments
