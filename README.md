@@ -284,7 +284,7 @@ python scripts/eval.py --help
 
 
 
-All three released checkpoints were verified in FP32 on the respective
+All four released checkpoints were verified in FP32 on the respective
 10,000-image test sets.
 
 - **SaluNet-C-18 / CIFAR-10 (SALU + GALU):** the released EMA checkpoint
@@ -357,6 +357,27 @@ python scripts/eval.py \
 ```
 
 Expected FP32 results: **70.33% Top-1**, **90.09% Top-5**.
+
+### SaluNet-T / CIFAR-100 — SALU + GALU evaluation
+
+Download the checkpoint into the repository root as
+`best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth`, then run:
+
+```bash
+python scripts/eval.py \
+  --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_galu.yaml \
+  --checkpoint best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth \
+  --normalization salu \
+  --activation galu \
+  --weights selected \
+  --batch-size 512 \
+  --num-workers 2 \
+  --device cuda \
+  --precision fp32
+```
+
+Expected FP32 results: **70.36% Top-1**, **89.08% Top-5**.
+
 
 ## Evaluation and reproducibility
 
