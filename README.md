@@ -95,6 +95,11 @@ mean and sample standard deviation. The best EMA accuracy within the cohort is
 83.27%. A single run does not establish an accuracy advantage of deterministic
 execution.
 
+Training logs:
+
+- [Deterministic run — 83.42% EMA Top-1](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/wyneddgb)
+- [Non-deterministic run with SALU/SWALU parameter tracking](https://forge.coreweave.com/wandb/SaluNet/salunet-c-18-c100/runs/7iwezan9)
+
 For the CNN CIFAR-100 comparison, BN models use EMA decay 0.997; SALU, GN, and
 RMSNorm use 0.9997. Main-model results provide a comparison independent of
 this EMA smoothing choice.
@@ -307,8 +312,8 @@ removes the SWALU output clamp and uses `abs + eps` for its positive parameters.
 It also fixes the final gradient accumulation window, EMA updates, mixed-label
 training accuracy, and checkpoint replacement.
 
-This variant has not yet been validated on ImageNet. The reported results
-correspond to the reference implementation with clamped SWALU.
+This variant has not yet been validated on ImageNet. The reported SaluNet-C-50 results correspond to the reference implementation
+with clamped SWALU.
 
 Independent evaluations and shared training logs are welcome.
 
@@ -514,6 +519,7 @@ Record the configuration, random seed, software versions, device, and checkpoint
 | `src/salunet/signal_control/` | Signal-control alternatives |
 | `src/salunet/data/` | Dataset modules and loaders |
 | `imagenet/salunet-c-50/` | Standalone ImageNet reference scripts and results |
+| `imagenet/salunet-c-50-experimental/` | Experimental unclamped-SWALU training and evaluation scripts |
 | `imagenet/salunet-t-b16/` | Derf-based ViT-B/16 scripts and setup instructions |
 | `LICENSES/` | Upstream license notices |
 
