@@ -262,6 +262,15 @@ python scripts/train.py --help
 python scripts/eval.py --help
 ```
 
+
+### SaluNet-T-B/16 / ImageNet-1K
+
+See the [ImageNet instructions](imagenet/salunet-t-b16/README.md)
+for the upstream Derf setup, the batch-128 training command,
+and evaluation at 224 × 224 and 288 × 288.
+
+
+
 ## Pretrained checkpoints
 
 | Model | Dataset | Weights | Top-1 | Top-5 | Download |
@@ -393,6 +402,33 @@ python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
 
 Replace `/path/to/imagenet/val` with the ImageNet-1K validation directory,
 organized into class subdirectories. Both evaluations use bilinear resizing.
+
+### SaluNet-T-B/16 / ImageNet-1K training
+
+This implementation builds on the [Derf ViT codebase](https://github.com/zlab-princeton/Derf/tree/main/ViT).
+Replace its `ViT/main.py` with our supplied version, and add `salu.py`
+and `test.py` to the same directory. The remaining upstream files are required.
+
+Our reference experiment uses a single GPU, a batch size of 128,
+and no gradient accumulation. Run from the Derf `ViT` directory:
+
+```bash
+python main.py \
+  --model vit_base_patch16_224 \
+  --batch_size 128 \
+  --lr 0.000125 \
+  --model_ema true \
+  --model_ema_eval true \
+  --model_ema_decay 0.999 \
+  --data_path /path/to/imagenet \
+  --output_dir outputdir2/ \
+  --normtype salu
+```
+
+With `--normtype salu`, LayerNorm is replaced by SALU and GELU by SWALU.
+The reference run uses 300 epochs. The upstream large-batch recipe is
+documented separately in the Derf repository.
+
 
 ## Evaluation and reproducibility
 
