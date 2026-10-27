@@ -152,10 +152,15 @@ validation-only checkpoint selection.
   the higher evaluation resolution.
 - C-50 evaluation uses bilinear resizing: resize 240 / crop 224, or resize
   320 / crop 288. Its SWALU outputs are clamped to [-10, 10].
-- Training uses an offline pre-resized ImageNet copy. The reported C-50 results
-  are recomputed on the original 50,000 validation images. Evaluation resolution
-  and preprocessing must be matched when comparing published results.
+  
+**ImageNet preprocessing:** training images were resized offline to a
+shorter-side length of 320 pixels, preserving aspect ratio with Lanczos
+interpolation. JPEG images were saved at quality 95 with chroma subsampling
+disabled. Training augmentations were then applied online.
 
+Evaluation used the original ImageNet-1K validation images, without offline
+resizing. The evaluation scripts apply resizing and center cropping online,
+using the settings specified in each evaluation command.
 ### Physical batch-size robustness
 
 | Physical batch size | ResNet-18, BN + ReLU, CIFAR-100 | SaluNet-C-18, SALU + SWALU, CIFAR-100 | SaluNet-C-18, SALU + GALU, CIFAR-10 |
@@ -254,6 +259,29 @@ python scripts/train.py --config configs/experiments/salunet-t/cifar10/salunet-t
 ```bash
 python scripts/train.py --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_gelu.yaml
 ```
+
+
+
+### ImageNet training data preparation
+
+Training images were resized offline with the following command:
+
+```bash
+python scripts/resize_imagenet_train.py \
+  --input /path/to/original/train \
+  --output /path/to/resized320/train \
+  --size 320 \
+  --workers 8 \
+  --quality 95
+```
+
+This preserves class directories and aspect ratio, resizes the shorter side
+to 320 pixels using Lanczos interpolation, and saves JPEG images at quality
+95 with chroma subsampling disabled. Point the training scripts to this
+resized training directory.
+
+Validation images must come from the original ImageNet validation directory.
+Resizing and center cropping are applied online by the evaluation scripts.
 
 ### SaluNet-C-50 / ImageNet-1K training
 
