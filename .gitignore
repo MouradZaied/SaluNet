@@ -69,3 +69,11 @@ nohup.out
 *.temp
 *.bak
 *~
+
+# Track ImageNet reference code; keep datasets and generated files ignored.
+!/imagenet/
+/imagenet/*
+!/imagenet/salunet-c-50/
+/imagenet/salunet-c-50/*
+!/imagenet/salunet-c-50/*.py
+!/imagenet/salunet-c-50/results.txt
