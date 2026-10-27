@@ -77,3 +77,10 @@ nohup.out
 /imagenet/salunet-c-50/*
 !/imagenet/salunet-c-50/*.py
 !/imagenet/salunet-c-50/results.txt
+
+# Track standalone SaluNet-T-B/16 ImageNet scripts.
+!/imagenet/salunet-t-b16/
+/imagenet/salunet-t-b16/*
+!/imagenet/salunet-t-b16/*.py
+!/imagenet/salunet-t-b16/README.md
+!/imagenet/salunet-t-b16/results.txt
