@@ -353,6 +353,26 @@ python scripts/train.py --help
 python scripts/eval.py --help
 ```
 
+
+
+### Resume training
+
+Resume from a full Lightning checkpoint using the same training configuration:
+
+```bash
+python scripts/train.py \
+  --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml \
+  --resume /path/to/last.ckpt
+```
+
+The checkpoint restores model and EMA weights, optimizer, scheduler, mixed-precision
+state, training progress, and saved best scores. `epochs` specifies the total
+training budget, not the number of additional epochs.
+
+Use `last.ckpt` for resuming; the best-model `.pth` files are intended for evaluation.
+Resuming does not guarantee an identical trajectory to uninterrupted training.
+
+
 ## Pretrained checkpoints
 
 | Model | Dataset | Weights | Top-1 | Top-5 | Download |
