@@ -52,7 +52,7 @@ def _silence_weights_only_notice():
                 handler.addFilter(message_filter)
 
 
-def train(config_path: str):
+def train(config_path: str, resume_path: str | None = None):
     _silence_weights_only_notice()
     cfg = load_config(config_path)
 
@@ -162,12 +162,13 @@ def train(config_path: str):
 
     # Trainer/logger construction may install additional handlers.
     _silence_weights_only_notice()
-    trainer.fit(model, datamodule=dm)
+    trainer.fit(model, datamodule=dm, ckpt_path=resume_path)
     return trainer, model
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True, help="Path to an experiment YAML configuration.")
+    parser.add_argument("--resume", default=None, help="Full Lightning checkpoint to resume.")
     args = parser.parse_args()
-    train(args.config)
+    train(args.config, resume_path=args.resume)

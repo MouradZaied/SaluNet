@@ -209,6 +209,16 @@ class BestModelCheckpoint(pl.Callback):
         self.best_ema = -float("inf") if self.ema_mode == "max" else float("inf")
         os.makedirs(save_dir, exist_ok=True)
 
+    def state_dict(self):
+        return {
+            "best_raw": self.best_raw,
+            "best_ema": self.best_ema,
+        }
+
+    def load_state_dict(self, state_dict):
+        self.best_raw = float(state_dict.get("best_raw", self.best_raw))
+        self.best_ema = float(state_dict.get("best_ema", self.best_ema))
+
     @staticmethod
     def _find_ema_callback(trainer):
         for callback in trainer.callbacks:
