@@ -1,6 +1,6 @@
 experiment_name: cifar100_resnet18_salu_swalu_seed142_recheck
 seed: 142
-deterministic: true
+deterministic: false
 num_classes: 100
 epochs: 300
 data:
@@ -91,7 +91,7 @@ trainer:
   accumulate_grad_batches: 1
   gradient_clip_val: 1.0
   allow_tf32: true
-  cudnn_benchmark: false
+  cudnn_benchmark: true
   matmul_precision: high
   fast_dev_run: false
 logging:
