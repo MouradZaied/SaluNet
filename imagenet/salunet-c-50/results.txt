@@ -1,61 +1,51 @@
-(mon-env-py310) root@ecs-ffdb:~/Salunet-C-50-imagenet_78.67_79.23/150ep/depot# python evaluate_salunet_c50_ema.py   --checkpoint ../best_checkpoint_epoch118_top79.42.pth   --data-root /mnt/imagenet_originalle/original/val   --resize-size 320   --crop-size 288   --batch-size 128 --num-workers 12
-Validation images: 50000
-Evaluation: resize=320, crop=288, interpolation=bilinear, device=cuda
-Architecture: 53 BN -> SALU, 17 ReLU -> clamped SWALU
-Checkpoint: ../best_checkpoint_epoch118_top79.42.pth
-Saved epoch: 118
-Saved best EMA Top-1: 79.416
-[  50/ 391] Top-1=86.078%  Top-5=96.906%
-[ 100/ 391] Top-1=85.609%  Top-5=96.992%
-[ 150/ 391] Top-1=85.359%  Top-5=97.094%
-[ 200/ 391] Top-1=83.129%  Top-5=96.156%
-[ 250/ 391] Top-1=81.950%  Top-5=95.684%
-[ 300/ 391] Top-1=81.083%  Top-5=95.271%
-[ 350/ 391] Top-1=80.275%  Top-5=94.953%
-[ 391/ 391] Top-1=80.158%  Top-5=94.964%
+SaluNet-C-50 / ImageNet-1K
 
-Final ImageNet-1K validation result
-Top-1: 80.158%
-Top-5: 94.964%
-(mon-env-py310) root@ecs-ffdb:~/Salunet-C-50-imagenet_78.67_79.23/150ep/depot# python evaluate_salunet_c50_ema.py   --checkpoint ../best_checkpoint_epoch118_top79.42.pth   --data-root /mnt/imagenet_originalle/original/val   --resize-size 240   --crop
--size 224   --batch-size 128 --num-workers 12
-Validation images: 50000
-Evaluation: resize=240, crop=224, interpolation=bilinear, device=cuda
-Architecture: 53 BN -> SALU, 17 ReLU -> clamped SWALU
-Checkpoint: ../best_checkpoint_epoch118_top79.42.pth
-Saved epoch: 118
-Saved best EMA Top-1: 79.416
-[  50/ 391] Top-1=85.219%  Top-5=96.781%
-[ 100/ 391] Top-1=84.961%  Top-5=96.852%
-[ 150/ 391] Top-1=84.635%  Top-5=96.948%
-[ 200/ 391] Top-1=82.430%  Top-5=96.023%
-[ 250/ 391] Top-1=81.303%  Top-5=95.403%
-[ 300/ 391] Top-1=80.477%  Top-5=94.943%
-[ 350/ 391] Top-1=79.730%  Top-5=94.569%
-[ 391/ 391] Top-1=79.588%  Top-5=94.586%
+Checkpoint:
+salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth
 
-Final ImageNet-1K validation result
+Architecture:
+53 SALU modules and 17 independent clamped-SWALU modules.
+SWALU outputs are clamped to [-10, 10] during training and evaluation.
+
+Checkpoint selection:
+EMA weights selected at epoch 118.
+Saved best EMA Top-1: 79.416% under the training validation protocol.
+
+Final evaluation:
+Original 50,000 ImageNet-1K validation images.
+Online bilinear resizing followed by center cropping.
+
+224 x 224:
+Resize shorter side to 240 pixels.
 Top-1: 79.588%
 Top-5: 94.586%
 
+288 x 288:
+Resize shorter side to 320 pixels.
+Top-1: 80.158%
+Top-5: 94.964%
 
+Both resolutions use the same selected EMA checkpoint.
+No additional training or fine-tuning is performed.
 
+Run the following commands from the SaluNet repository root.
 
+Evaluation at 224 x 224:
 
-# Final evaluation at 224x224
-python evaluate_salunet_c50_ema.py \
-  --checkpoint ../best_checkpoint_epoch118_top79.42.pth \
-  --data-root /mnt/imagenet_originalle/original/val \
+python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
+  --checkpoint salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth \
+  --data-root /path/to/imagenet/val \
   --resize-size 240 \
   --crop-size 224 \
   --batch-size 128 \
-  --num-workers 12
+  --num-workers 4
 
-# Final evaluation at 288x288
-python evaluate_salunet_c50_ema.py \
-  --checkpoint ../best_checkpoint_epoch118_top79.42.pth \
-  --data-root /mnt/imagenet_originalle/original/val \
+Evaluation at 288 x 288:
+
+python imagenet/salunet-c-50/evaluate_salunet_c50_ema.py \
+  --checkpoint salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth \
+  --data-root /path/to/imagenet/val \
   --resize-size 320 \
   --crop-size 288 \
   --batch-size 128 \
-  --num-workers 12
+  --num-workers 4
