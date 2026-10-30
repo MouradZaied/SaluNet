@@ -241,7 +241,7 @@ python scripts/train.py --config configs/experiments/salunet-c-18/cifar10/salune
 Reference configuration with deterministic execution (seed 142):
 
 ```bash
-python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml
+python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_deterministic.yaml
 ```
 
 Non-deterministic configuration with SALU/SWALU parameter logging:
