@@ -424,7 +424,7 @@ Download the [EMA checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdk
 
 ```bash
 python scripts/eval.py \
-  --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100.yaml \
+  --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_deterministic.yaml \
   --checkpoint checkpoints/cifar100_salu_swalu/best_ema_model.pth \
   --normalization salu \
   --activation swalu \
