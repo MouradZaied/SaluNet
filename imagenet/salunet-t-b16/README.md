@@ -24,12 +24,27 @@ cd ViT
 ```
 
 Follow the upstream dependency installation instructions.
-Run the following commands from the Derf `ViT` directory.
+Run the training and evaluation commands below from the Derf `ViT` directory.
+
+## Data preprocessing
+
+Both training and validation images are resized offline so that their
+longest side is 320 pixels, preserving aspect ratio with Lanczos
+interpolation, and saved as JPEG at quality 95 using Pillow's default
+chroma subsampling. Jupyter checkpoint copies are excluded.
+
+Use `scripts/resize_imagenet_train.py` from the SaluNet repository
+to prepare each split separately. Point `--data_path` to the parent
+directory containing the preprocessed `train/` and `val/` folders.
+
+Training augmentations are applied online. Evaluation applies an
+additional bicubic resize and center crop, as specified below.
 
 ## Training
 
-The reference experiment uses one GPU, batch size 128, no gradient
-accumulation, and 300 epochs.
+The reference experiment trains from scratch on one shared NVIDIA A40
+GPU with 24 GB available to the training process. It uses physical and
+effective batch sizes of 128, no gradient accumulation, and 300 epochs.
 
 ```bash
 python main.py \
@@ -44,22 +59,45 @@ python main.py \
   --normtype salu
 ```
 
-Replace `/path/to/imagenet` with the directory containing `train/`
-and `val/`. The upstream large-batch training command is available
-in the Derf repository.
+Replace `/path/to/imagenet` with the directory containing the preprocessed
+`train/` and `val/` folders. The upstream large-batch training command is
+available in the Derf repository.
+
+The completed reference run used two training stages. The initial stage
+used a learning rate of 0.000125 and 20 warmup epochs. Training resumed
+from `checkpoint-150.pth` at epoch index 151, with a learning rate of
+0.0001 and no additional warmup, keeping the total training horizon
+at 300 epochs. EMA decay remained 0.999.
+
+The command above describes the initial stage; reproducing the completed
+run also requires this resumed stage.
+
+The adapted batch size and learning-rate configuration differ from the
+published Derf recipe. This experiment demonstrates scaling feasibility
+under hardware constraints rather than a recipe-matched operator comparison.
 
 ## Evaluation
 
 The reported results use EMA weights:
 
-| Resolution | Resize | Center crop | Top-1 (%) | Top-5 (%) |
+| Resolution | Online resize (shorter side) | Center crop | Top-1 (%) | Top-5 (%) |
 | --- | --- | --- | --- | --- |
 | 224 × 224 | 256 | 224 | 80.12 | 94.79 |
-| 288 × 288 | 320 | 288 | 80.28 | 94.75 |
+| 288 × 288 | 320 | 288 | 80.28 | 94.74 |
+
+Both resolutions use the same selected EMA checkpoint, without additional
+training or fine-tuning. The positional embedding is interpolated
+bicubically for evaluation at 288 × 288.
+
+Each result comes from the same completed training run; no run-to-run
+standard deviation is reported.
 
 Download the [EMA checkpoint](https://drive.google.com/file/d/1tFNHfnQCrepLL7jry7ugfk4QpbIqX_P-/view?usp=sharing)
 and save it in the Derf `ViT` directory as
 `salunet-t-b16-imagenet1k-salu-swalu-ema.pth`.
+
+For both commands below, `/path/to/imagenet` must contain the validation
+copy preprocessed offline as described above.
 
 ### Evaluation at 224 × 224
 
@@ -75,7 +113,8 @@ python test.py \
   --crop-size 224 \
   --compile_eval true \
   --compile_mode max-autotune-no-cudagraphs \
-  --num_workers 4
+  --num_workers 4 \
+  --use_amp false
 ```
 
 ### Evaluation at 288 × 288
@@ -92,7 +131,8 @@ python test.py \
   --crop-size 288 \
   --compile_eval true \
   --compile_mode max-autotune-no-cudagraphs \
-  --num_workers 4
+  --num_workers 4 \
+  --use_amp false
 ```
 
 ## Integration status
@@ -104,4 +144,4 @@ SaluNet-C-18 and SaluNet-T CIFAR codebase are ongoing.
 ## Attribution
 
 The implementation builds on Derf. The upstream MIT license notice is
-retained in [LICENSES/Derf-MIT.txt](../../LICENSES/Derf-MIT.txt).
+retained in [LICENSES/Derf-MIT.txt](../../../LICENSES/Derf-MIT.txt).
