@@ -1,8 +1,8 @@
-# SaluNet
+# Geometry, Not Statistics: SaluNet for Normalization-Free CNNs and Transformers
 
-**Learnable elementwise transformations for normalization-free convolutional networks and Vision Transformers.**
+**Reference implementations, experiment configurations, and pretrained checkpoints accompanying the paper.**
 
-SaluNet explores replacing feature normalization layers with **SALU**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
+SaluNet explores replacing feature normalization layers with the **Saturated Adaptive Linear Unit (SALU)**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
 
 This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. PyTorch reference scripts are also provided for SaluNet-C-50 and SaluNet-T-B/16 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
 
@@ -140,7 +140,7 @@ validation-only checkpoint selection.
 | SaluNet-C-50 | 150, with 4N training views per epoch | 180 / 900 | 224 × 224 | 79.59 | 94.59 |
 | SaluNet-C-50 | Same checkpoint | 180 / 900 | 288 × 288 | 80.16 | 94.96 |
 | SaluNet-T-B/16 | 300 | 128 / 128 | 224 × 224 | 80.12 | 94.79 |
-| SaluNet-T-B/16 | Same checkpoint | 128 / 128 | 288 × 288 | 80.28 | 94.75 |
+| SaluNet-T-B/16 | Same checkpoint | 128 / 128 | 288 × 288 | 80.28 | 94.74 |
 
 - Each backbone is represented by **one completed run**, trained from scratch on
   one shared NVIDIA A40 GPU with 24 GB available to the training process. No
@@ -155,11 +155,18 @@ validation-only checkpoint selection.
 - The 288 × 288 evaluations reuse the selected EMA checkpoints **without further
   training or fine-tuning**. The ViT positional embedding is interpolated for
   the higher evaluation resolution.
-- C-50 evaluation uses bilinear resizing: resize 240 / crop 224, or resize
-  320 / crop 288. Its SWALU outputs are clamped to [-10, 10].
-- Training uses offline-resized images; evaluation uses the original
-ImageNet-1K validation images. See [ImageNet training data preparation](#imagenet-training-data-preparation)
-for the preprocessing procedure.
+- **Training preprocessing (both models):** images are resized offline
+  so that the longest side is 320 pixels, preserving aspect ratio with
+  Lanczos interpolation, and saved as JPEG at quality 95.
+  Online training augmentations and random crops are then applied.
+- **SaluNet-C-50 evaluation:** uses the original 50,000 ImageNet-1K
+  validation images, with online bilinear resizing and center cropping:
+  resize 240 / crop 224, or resize 320 / crop 288.
+- **SaluNet-C-50 reference implementation:** SWALU outputs are clamped
+  to [-10, 10] during both training and evaluation.
+- **SaluNet-T-B/16 evaluation:** uses the 50,000 validation images
+  preprocessed offline in the same way as the training images,
+  followed by online bicubic resizing and center cropping.
   
 ### Physical batch-size robustness
 
@@ -275,13 +282,16 @@ python scripts/resize_imagenet_train.py \
   --quality 95
 ```
 
-This preserves class directories and aspect ratio, resizes the shorter side
-to 320 pixels using Lanczos interpolation, and saves JPEG images at quality
-95 with chroma subsampling disabled. Point the training scripts to this
-resized training directory.
+This preserves class directories and aspect ratio, resizes the longest
+side to 320 pixels using Lanczos interpolation, and saves JPEG images
+at quality 95 using Pillow's default chroma subsampling.
+Jupyter checkpoint copies are excluded.
 
-Validation images must come from the original ImageNet validation directory.
-Resizing and center cropping are applied online by the evaluation scripts.
+Use this preprocessing for the training images of both models and
+for the SaluNet-T-B/16 validation images.
+SaluNet-C-50 evaluation uses the original validation images.
+Online augmentations and evaluation transforms are applied afterward.
+
 
 ### SaluNet-C-50 / ImageNet-1K training
 
@@ -512,7 +522,7 @@ and follow the [ViT-B/16 evaluation instructions](imagenet/salunet-t-b16/README.
 Save the file as `salunet-t-b16-imagenet1k-salu-swalu-ema.pth` in the
 Derf `ViT` directory and use that filename for `--checkpoint`.
 The expected results are **80.12% / 94.79%** Top-1 / Top-5 at 224 × 224
-and **80.28% / 94.75%** at 288 × 288.
+and **80.28% / 94.74%** at 288 × 288.
 
 ## Evaluation and reproducibility
 
@@ -544,6 +554,10 @@ Record the configuration, random seed, software versions, device, and checkpoint
 | `LICENSES/` | Upstream license notices |
 
 ## Acknowledgments
+
+The author thanks Google Cloud for research credits provided through
+the Google Cloud Research Credits program, and the University of Gabes
+for its institutional support.
 
 This repository includes components adapted from or related to:
 
