@@ -553,6 +553,36 @@ Record the configuration, random seed, software versions, device, and checkpoint
 | `imagenet/salunet-t-b16/` | Derf-based ViT-B/16 scripts and setup instructions |
 | `LICENSES/` | Upstream license notices |
 
+## Community experiments and collaboration
+
+We welcome collaboration on reproducibility and further evaluation of SaluNet, particularly at ImageNet scale and in the small-batch CIFAR regime.
+
+Our ImageNet results represent **one completed training run per backbone** under hardware constraints. They demonstrate training feasibility; they do not quantify run-to-run variability or establish superiority over baselines trained under matched conditions. The CIFAR batch-size sweep also contains **one completed run per configuration at batch sizes 4, 2, and 1**.
+
+Useful contributions include:
+
+- **Matched ImageNet baselines:** train BN+ReLU ResNet-50 and LN+GELU ViT-B/16 models using the corresponding SaluNet experiment's preprocessing, augmentations, training budget, optimization settings, and evaluation protocol. Document any differences.
+
+- **Multi-seed ImageNet repetitions:** repeat the reference experiments with additional seeds and report individual results, means, and sample standard deviations.
+
+- **Small-batch CIFAR repetitions:** repeat the ResNet-18 experiments, particularly at batch sizes **4, 2, and 1**, for both SaluNet and BN+ReLU. Follow the documented protocol, including the batch-size-dependent learning rate. Comparisons with GN and RMSNorm under a common activation would also help distinguish the contributions of stabilization and gating.
+
+- **Experimental C-50 evaluation:** train the [unclamped, abs + eps SWALU variant](imagenet/salunet-c-50-experimental/README.md). This variant has no reported training results yet and is distinct from the clamped reference implementation used for the published C-50 scores.
+
+Before starting an expensive experiment, please [open a GitHub issue](https://github.com/MouradZaied/SaluNet/issues) to discuss the protocol and coordinate efforts.
+
+When sharing results, please include:
+
+- Repository commit and complete configuration.
+- Training and evaluation commands.
+- Random seed and software versions.
+- Hardware and physical/effective batch sizes.
+- Data preprocessing and evaluation settings.
+- Training logs and checkpoint-selection rule.
+- Individual results for every completed run, including results that differ from expectations.
+
+Contributions will be acknowledged. Substantial research collaborations, including potential coauthorship, can be discussed according to the contributions made.
+
 ## Acknowledgments
 
 The author thanks Google Cloud for research credits provided through
