@@ -561,6 +561,15 @@ Our ImageNet results represent **one completed training run per backbone** under
 
 Useful contributions include:
 
+- **Large-batch ImageNet ViT-B/16:** evaluate SALU+SWALU with the
+  [original Derf large-batch recipe](imagenet/salunet-t-b16/README.md#community-experiment-original-derf-large-batch-recipe),
+  using an effective batch size of 4096 and original ImageNet-1K images.
+  This would assess our approach under training conditions aligned with
+  published normalization-free Transformer references. Accompanying
+  LN+GELU, DyT+GELU, and Derf+GELU runs under the same conditions would
+  enable controlled comparisons. No results are currently reported
+  for this large-batch SALU+SWALU configuration.
+
 - **Matched ImageNet baselines:** train BN+ReLU ResNet-50 and LN+GELU ViT-B/16 models using the corresponding SaluNet experiment's preprocessing, augmentations, training budget, optimization settings, and evaluation protocol. Document any differences.
 
 - **Multi-seed ImageNet repetitions:** repeat the reference experiments with additional seeds and report individual results, means, and sample standard deviations.

@@ -76,6 +76,49 @@ The adapted batch size and learning-rate configuration differ from the
 published Derf recipe. This experiment demonstrates scaling feasibility
 under hardware constraints rather than a recipe-matched operator comparison.
 
+
+## Community experiment: original Derf large-batch recipe
+
+For researchers with sufficient GPU resources, the upstream Derf ViT-B/16
+training command can also be used with our adapted `main.py` and `salu.py`,
+setting `--normtype salu`. This replaces LayerNorm with SALU and GELU
+with SWALU while retaining the upstream training defaults.
+
+```bash
+torchrun --nnodes=4 --nproc_per_node=8 main.py \
+  --model vit_base_patch16_224 \
+  --batch_size 128 \
+  --update_freq 1 \
+  --model_ema true \
+  --model_ema_eval true \
+  --data_path /path/to/imagenet \
+  --output_dir /path/to/salunet_large_batch \
+  --normtype salu
+```
+
+This reproduces the upstream launch template. For a multi-node launch,
+configure the node ranks and rendezvous settings for your cluster.
+
+The effective training batch size is:
+
+4 nodes × 8 GPUs per node × 128 images per GPU × 1 accumulation step = 4096.
+
+With a different GPU configuration, adjust `--batch_size` and
+`--update_freq` to maintain the intended effective batch size.
+Use the original ImageNet images to investigate this large-batch recipe
+separately from our published run using offline-resized images.
+
+This is a proposed experiment, not the command used for the released
+checkpoint. Our published run uses an effective batch size of 128,
+EMA decay 0.999, and the two-stage learning-rate configuration described
+above. No results are currently reported for this large-batch
+SALU+SWALU configuration.
+
+We welcome training logs, checkpoints, and results from community
+experiments. Please open a GitHub issue to coordinate the protocol
+and share your findings.
+
+
 ## Evaluation
 
 The reported results use EMA weights:
@@ -116,6 +159,9 @@ python test.py \
   --num_workers 4 \
   --use_amp false
 ```
+
+
+
 
 ### Evaluation at 288 × 288
 
