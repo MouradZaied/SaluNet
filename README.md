@@ -267,7 +267,14 @@ python scripts/train.py --config configs/experiments/salunet-t/cifar10/salunet-t
 python scripts/train.py --config configs/experiments/salunet-t/cifar100/salunet-t_cifar100_salu_gelu.yaml
 ```
 
+### Unified CIFAR command-line options
 
+To inspect the unified CIFAR command-line options, run from the SaluNet repository root:
+
+```bash
+python scripts/train.py --help
+python scripts/eval.py --help
+```
 
 ### ImageNet training data preparation
 
@@ -355,15 +362,6 @@ python main.py \
 With `--normtype salu`, LayerNorm is replaced by SALU and GELU by SWALU.
 The reference run uses 300 epochs. The upstream large-batch recipe is
 documented separately in the Derf repository.
-
-To inspect the unified CIFAR command-line options:
-
-```bash
-python scripts/train.py --help
-python scripts/eval.py --help
-```
-
-
 
 ### Resume training
 
