@@ -47,8 +47,8 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/USERNAME/salunet"
-Issues = "https://github.com/USERNAME/salunet/issues"
+Repository = "https://github.com/MouradZaied/SaluNet"
+Issues = "https://github.com/MouradZaied/SaluNet/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

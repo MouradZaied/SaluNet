@@ -215,16 +215,78 @@ git clone https://github.com/MouradZaied/SaluNet.git
 cd SaluNet
 ```
 
-Create and activate a Python environment, then install a compatible PyTorch/torchvision pair for your hardware using the instructions at [pytorch.org](https://pytorch.org/get-started/locally/).
+Create and activate a Python environment (Python 3.10 was tested).
 
-Install the remaining dependencies and the local package:
+### Tested CUDA 12.1 installation
+
+The following installation was tested on an NVIDIA A40-24Q with driver
+525.85.05 using Python 3.10. Training and validation were successfully
+executed with PyTorch 2.4.0 and torchvision 0.19.0.
+
+Update the installation tools:
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install --upgrade pip setuptools wheel
+```
+
+Install the tested PyTorch/torchvision pair:
+
+```bash
+python -m pip install --no-cache-dir \
+  --index-url https://download.pytorch.org/whl/cu121 \
+  torch==2.4.0 torchvision==0.19.0
+```
+
+Install SaluNet and its remaining dependencies while preserving these versions:
+
+```bash
+python -m pip install --no-cache-dir \
+  -e . "torch==2.4.0+cu121" "torchvision==0.19.0+cu121"
+```
+
+Check dependency consistency:
+
+```bash
+python -m pip check
+```
+
+Verify GPU access and a CUDA computation:
+
+```bash
+python - <<'PY'
+import torch
+import torchvision
+
+print("PyTorch:", torch.__version__)
+print("torchvision:", torchvision.__version__)
+print("CUDA available:", torch.cuda.is_available())
+
+x = torch.randn(256, 256, device="cuda")
+y = x @ x
+torch.cuda.synchronize()
+
+print("GPU:", torch.cuda.get_device_name(0))
+print("CUDA computation: OK")
+PY
+```
+
+### Other hardware and CUDA versions
+
+Install a compatible PyTorch/torchvision pair following the instructions at
+[pytorch.org](https://pytorch.org/get-started/locally/), then install SaluNet:
+
+```bash
 python -m pip install -e .
 ```
 
-Review `requirements.txt` and `pyproject.toml` for dependency requirements. GPU memory usage depends on the architecture, batch size, numerical precision, and compilation settings.
+The dependency ranges in `requirements.txt` and `pyproject.toml` allow
+multiple PyTorch versions. The appropriate CUDA build depends on your
+NVIDIA driver; installing the newest available build may require a newer
+driver.
+
+GPU memory usage depends on the architecture, batch size, numerical
+precision, and compilation settings. Ensure sufficient free disk space
+for PyTorch and its CUDA dependencies.
 
 ## Training
 
