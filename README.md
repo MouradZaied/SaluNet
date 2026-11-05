@@ -447,8 +447,8 @@ Resuming does not guarantee an identical trajectory to uninterrupted training.
 
 | Model | Dataset | Weights | Top-1 | Top-5 | Download |
 | --- | --- | --- | --- | --- | --- |
-| SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) |
-| SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) |
+| SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C10_97.27.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing)) |
+| SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C100_83.42.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link)) |
 | SaluNet-T (SALU + GELU) | CIFAR-100 | EMA | 70.33% | 90.09% | [Checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing) |
 | SaluNet-T (SALU + GALU) | CIFAR-100 | EMA | 70.36% | 89.08% | [Checkpoint](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing) |
 
@@ -461,7 +461,7 @@ and the T / SALU + GELU checkpoint at 70.33% is a separate run from the
 
 ### SaluNet-C-18 / CIFAR-10 evaluation
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing) into the repository root as
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C10_97.27.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing)) into the repository root as
 `best_ema_model_SaluNet-C-18_C10_97.27.pth`, then run:
 
 ```bash
@@ -479,7 +479,7 @@ python scripts/eval.py \
 
 ### SaluNet-C-18 / CIFAR-100 evaluation
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link) and save it as
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C100_83.42.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link)) and save it as
 `checkpoints/cifar100_salu_swalu/best_ema_model.pth`, then run:
 
 ```bash
@@ -539,7 +539,7 @@ The model contains 53 SALU modules and 17 independent clamped-SWALU
 modules. EMA weights were selected at epoch 118. No fine-tuning was
 performed after checkpoint selection.
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/11-xtu1FyW6g-T53kRnTY3t2TjEvnGeVJ/view?usp=drive_link)
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/11-xtu1FyW6g-T53kRnTY3t2TjEvnGeVJ/view?usp=drive_link))
 and save it in the repository root as
 `salunet-c50-imagenet1k-clamped-swalu-ema-epoch118.pth`.
 
@@ -577,7 +577,7 @@ organized into class subdirectories. Both evaluations use bilinear resizing.
 
 ### SaluNet-T-B/16 / ImageNet-1K evaluation
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/1tFNHfnQCrepLL7jry7ugfk4QpbIqX_P-/view?usp=sharing)
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/salunet-t-b16-imagenet1k-salu-swalu-ema.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1tFNHfnQCrepLL7jry7ugfk4QpbIqX_P-/view?usp=sharing))
 and follow the [ViT-B/16 evaluation instructions](imagenet/salunet-t-b16/README.md).
 Save the file as `salunet-t-b16-imagenet1k-salu-swalu-ema.pth` in the
 Derf `ViT` directory and use that filename for `--checkpoint`.
