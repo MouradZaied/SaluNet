@@ -449,8 +449,8 @@ Resuming does not guarantee an identical trajectory to uninterrupted training.
 | --- | --- | --- | --- | --- | --- |
 | SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C10_97.27.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing)) |
 | SaluNet-C-18 (SALU + SWALU) | CIFAR-100 | EMA | 83.42% | 96.25% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C100_83.42.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/11_BCqoLbV6SWW0Rdkjf68vjm06JVC8rj/view?usp=drive_link)) |
-| SaluNet-T (SALU + GELU) | CIFAR-100 | EMA | 70.33% | 90.09% | [Checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing) |
-| SaluNet-T (SALU + GALU) | CIFAR-100 | EMA | 70.36% | 89.08% | [Checkpoint](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing) |
+| SaluNet-T (SALU + GELU) | CIFAR-100 | EMA | 70.33% | 90.09% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-T_C100_SALU_GELU_70.33.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing)) |
+| SaluNet-T (SALU + GALU) | CIFAR-100 | EMA | 70.36% | 89.08% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing)) |
 
 The four CIFAR checkpoints above were verified in FP32 on their respective
 10,000-image test sets. Released checkpoints are distinguished from best
@@ -497,7 +497,7 @@ python scripts/eval.py \
 
 ### SaluNet-T / CIFAR-100 — SALU + GELU evaluation
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing)
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-T_C100_SALU_GELU_70.33.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1u7D0Y3XUAgutq_LAiz8YzOH3XbNsVxkN/view?usp=sharing))
 and save it in the repository root as
 `best_ema_model_SaluNet-T_C100_SALU_GELU_70.33.pth`, then run:
 
@@ -516,7 +516,7 @@ python scripts/eval.py \
 
 ### SaluNet-T / CIFAR-100 — SALU + GALU evaluation
 
-Download the [EMA checkpoint](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing)
+Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/16YGnUTxVMLDhoKwgiuC_2DKMA-WvEJuQ/view?usp=sharing))
 into the repository root as
 `best_ema_model_SaluNet-T_C100_SALU_GALU_70.36.pth`, then run:
 
