@@ -459,6 +459,14 @@ and the T / SALU + GELU checkpoint at 70.33% is a separate run from the
 70.82% best observed result. For C-18 / CIFAR-100, FP16 evaluation gives
 83.43% Top-1 and 96.25% Top-5.
 
+The four CIFAR checkpoints listed above and the two ImageNet checkpoints
+described below were downloaded from Hugging Face and evaluated using
+a fresh clone of this repository, with the documented Derf integration
+for ViT-B/16. All four CIFAR checkpoints reproduced their listed
+Top-1/Top-5 accuracies in FP32. At 288 × 288, the ImageNet checkpoints
+reproduced 80.158% / 94.964% for SaluNet-C-50 and 80.276% / 94.740%
+for SaluNet-T-B/16, using their respective documented evaluation protocols.
+
 ### SaluNet-C-18 / CIFAR-10 evaluation
 
 Download the [EMA checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C10_97.27.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing)) into the repository root as
