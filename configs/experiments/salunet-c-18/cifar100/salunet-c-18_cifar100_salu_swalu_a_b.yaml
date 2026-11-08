@@ -1,5 +1,5 @@
-experiment_name: cifar100_resnet18_salu_relu_freeze_signal_after_min_83_27
-seed: 1234
+experiment_name: cifar100_resnet18_salu_swalu_seed42_ab_tracking
+seed: 42
 deterministic: false
 num_classes: 100
 epochs: 300
@@ -29,7 +29,10 @@ model:
 signal_control:
   type: salu
 activation:
-  type: relu
+  type: swalu
+  a_init: 1.0
+  b_init: 1.0
+  positivity: abs_eps_legacy
 salu:
   positivity: exp_log
   a_init: 1.0
@@ -70,7 +73,7 @@ ema:
   decay: 0.9997
 checkpoint:
   save_checkpoints: true
-  save_dir: ./checkpoints/cifar100_resnet18_salu_relu_freeze_signal_after_min
+  save_dir: ./checkpoints/cifar100_resnet18_salu_swalu_seed42_ab_tracking
   save_raw_best: true
   save_ema_best: true
   save_last: true
@@ -95,19 +98,19 @@ logging:
   log_every_n_steps: 50
   wandb:
     enabled: true
-    project: cifar100-resnet-sota
+    project: salunet-paper
     entity: null
-    name: cifar100_resnet18_salu_relu_freeze_signal_after_min_83_27
+    name: cifar100_resnet18_salu_swalu_seed42_ab_tracking
     tags:
     - cifar100
-    - resnet18
+    - SaluNet-C-18
     - salu
-    - relu
+    - swalu
     - ema
-    - tested-source
-    - strict-notebook
     - seed42
     - freeze-zero
+    - non-deterministic
+    - parameter-tracking
     log_model: false
     offline: false
   tensorboard:
@@ -115,14 +118,13 @@ logging:
     save_dir: logs/tensorboard
   csv:
     enabled: true
-    save_dir: logs/csv
+    save_dir: logs/csv/cifar100_resnet18_salu_swalu_seed42_ab_tracking
   diagnostics:
-    enabled: false
+    enabled: true
     every_n_steps: 100
-    max_modules: 16
-    log_grad_norm_x: true
-    log_grad_norm_ab: true
-    log_variance: true
+    max_modules: 64
+    log_variance: false
+    log_grad_norm_ab: false
   learning_rate:
     enabled: true
     logging_interval: step

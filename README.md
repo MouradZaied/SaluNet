@@ -312,8 +312,10 @@ Non-deterministic configuration with SALU/SWALU parameter logging:
 python scripts/train.py --config configs/experiments/salunet-c-18/cifar100/salunet-c-18_cifar100_salu_swalu_a_b.yaml
 ```
 
-The second configuration records the evolution of parameters `a` and `b`.
-It is a separate experiment and is not intended to reproduce the 83.42% result.
+The second configuration provides non-deterministic SALU + SWALU
+training at seed 42 with parameter tracking enabled. It is a corrected
+tracking configuration, not an exact reconstruction of the historical
+linked run, and is not intended to reproduce the 83.42% result.
 
 Additional configurations are available under `configs/experiments/`, including CIFAR-10 experiments and alternative normalization/activation combinations. Use the configuration associated with the experiment you intend to reproduce; different configurations may use different recipes.
 
