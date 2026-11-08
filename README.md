@@ -1,5 +1,7 @@
 # Geometry, Not Statistics: SaluNet for Normalization-Free CNNs and Transformers
 
+*Normalization moves the distribution. Derf moves the function. SALU deforms the function around a fixed center.*
+
 **Reference implementations, experiment configurations, and pretrained checkpoints accompanying the paper.**
 
 SaluNet explores replacing feature normalization layers with the **Saturated Adaptive Linear Unit (SALU)**, a learnable elementwise transformation that does not compute batch or token feature statistics. Its gated variants, **SWALU** and **GALU**, provide learnable activation functions.
