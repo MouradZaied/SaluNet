@@ -8,7 +8,7 @@ SaluNet explores replacing feature normalization layers with the **Saturated Ada
 
 This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. PyTorch reference scripts are also provided for SaluNet-C-50 and SaluNet-T-B/16 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
 
-📣 **Research announcement and discussion:** [Read the thread on X](https://x.com/Mourad_ZAIED/status/2117723125756346685)
+📣 **Research announcement and discussion:** [Read the thread on X](https://x.com/Mourad_ZAIED/status/2119487366918480035)
 
 ![SaluNet teaser: PReLU dynamics on CIFAR-10, SALU geometry, and batch-size resilience on CIFAR-100.](assets/teaser.png)
 
