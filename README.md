@@ -451,6 +451,14 @@ Resuming does not guarantee an identical trajectory to uninterrupted training.
 
 ## Pretrained checkpoints
 
+### Evaluate CIFAR checkpoints in Google Colab
+
+Run the notebook to download and evaluate any of the four released CIFAR
+checkpoints, with FP32 Top-1/Top-5 metrics. No local installation is required.
+Enable a GPU runtime before running the cells.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MouradZaied/SaluNet/blob/main/eval_notebook/SaluNet_CIFAR_Colab_EN.ipynb)
+
 | Model | Dataset | Weights | Top-1 | Top-5 | Download |
 | --- | --- | --- | --- | --- | --- |
 | SaluNet-C-18 (SALU + GALU) | CIFAR-10 | EMA | 97.27% | 99.89% | [Checkpoint](https://huggingface.co/Mourad-zaied/SaluNet/resolve/main/best_ema_model_SaluNet-C-18_C10_97.27.pth?download=true) ([Google Drive mirror](https://drive.google.com/file/d/1IeYOrmdkGwm-cAaz2XKzfz4XhQ1dcSsp/view?usp=sharing)) |
