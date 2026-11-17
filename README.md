@@ -8,6 +8,8 @@ SaluNet explores replacing feature normalization layers with the **Saturated Ada
 
 This repository contains PyTorch and PyTorch Lightning implementations, training and evaluation scripts, and experiment configurations for CIFAR-10 and CIFAR-100. PyTorch reference scripts are also provided for SaluNet-C-50 and SaluNet-T-B/16 on ImageNet-1K; conversion to PyTorch Lightning and integration into the unified codebase are ongoing. The results section also summarizes the ImageNet experiments reported in the manuscript.
 
+📄 **Paper:** [Geometry, Not Statistics: SaluNet for Normalization-Free CNNs and Transformers](https://arxiv.org/abs/2606.02927)
+
 📣 **Research announcement and discussions:** [X thread](https://x.com/Mourad_ZAIED/status/2119487366918480035) · [Reddit discussion](https://www.reddit.com/r/deeplearning/comments/1xrqi5f/p_can_we_remove_batchnorm_and_layernorm_our_new/)
 
 
