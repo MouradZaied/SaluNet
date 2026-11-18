@@ -1,3 +1,17 @@
+"""SaluNet-C50 stage 4 experiment: release unused allocator cache once per epoch.
+Checkpoint format/config and all per-batch calculations match stage 3.
+Allocator fix: removed max_split_size_mb:512 (measured ~410 images/s at BS=180).
+The stage-2 activations, training loop, persistent workers and compile mode
+are preserved. Best main/EMA exports and last_resume.pth are written atomically.
+Resume restores main/EMA/optimizer/scaler/epoch and main-process RNG streams.
+Persistent-worker augmentation states are not serialized: resumed augmentation
+streams differ, and nondeterministic GPU kernels prevent bitwise guarantees.
+Only resume trusted files produced by this stage; stage-2 best EMA exports
+are not full training checkpoints.
+Usage: python train_salunet_c50_stage3_resume.py
+Resume: SALUNET_RESUME=checkpoints_c50_stage3/last_resume.pth python train_salunet_c50_stage3_resume.py
+Keep SALUNET_SEED and all training settings unchanged when resuming.
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,8 +24,19 @@ import os
 import sys
 import time
 import wandb
+import random
+import numpy as np
 
-# Experimental unclamped abs-positive SWALU variant of the reference recipe.
+# Fixed seed, without imposing deterministic kernels.
+# Set SALUNET_SEED in the shell to compare seeds; the default is 42.
+SEED = int(os.environ.get("SALUNET_SEED", "42"))
+random.seed(SEED)
+np.random.seed(SEED % (2**32))
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+print(f"Seed: {SEED} (fast nondeterministic GPU execution)")
+
+# Historical SaluNet-C-50/ImageNet-1K recipe.
 use_mixup = True
 use_cutmix = True
 FP16 = True
@@ -51,7 +76,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # CUDA settings used for the reported single-A40 run.
 os.environ["CUDA_LAUNCH_BLOCKING"] = "0"
 os.environ["TORCH_CUDNN_V8_API_ENABLED"] = "1"
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
+# Use the default CUDA allocator; do not force max_split_size_mb.
 
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 torch.use_deterministic_algorithms(False)
@@ -73,7 +98,7 @@ print(f"    GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:
 print(f"    TF32 enabled: {torch.backends.cuda.matmul.allow_tf32}")
 print(f"    cuDNN v8: {os.environ.get('TORCH_CUDNN_V8_API_ENABLED', 'no')}")
 print(f"    cuBLAS workspace: {os.environ.get('CUBLAS_WORKSPACE_CONFIG', 'undefined')}")
-wandb.init(project="salunet-c50-imagenet1k-experimental")
+wandb.init(project="salunet-c50-imagenet1k-stage3", config={"seed": SEED, "deterministic": False})
 
 class SALU(nn.Module):
     """Saturating activation with positive log-parameterized coefficients."""
@@ -142,7 +167,7 @@ class SWALU(nn.Module):
 # ================= MODEL =================
     
 def build_model_with_controlled_downsample(bn_downsample_config, default_a=1.0, default_b=0.1):
-    """Build the experimental ResNet-50 with SALU and unclamped SWALU (abs + eps)."""
+    """Build reference ResNet-50 with only the activation variant changed."""
     model = models.resnet50(weights=None)
     salu_count = 0
     bn_kept_count = 0
@@ -263,18 +288,14 @@ class ModelEMA:
     def update(self, model):
         self.num_updates += 1
         decay = min(self.decay, (1 + self.num_updates) / (10 + self.num_updates))
-        source = model._orig_mod if hasattr(model, "_orig_mod") else model
-        source_state = source.state_dict()
-        for name, ema_v in self.ema_model.state_dict().items():
-            model_v = source_state[name]
-            if ema_v.is_floating_point():
-                ema_v.copy_(ema_v * decay + model_v * (1. - decay))
-            else:
-                ema_v.copy_(model_v)
+        for ema_v, model_v in zip(self.ema_model.state_dict().values(), model.state_dict().values()):
+            ema_v.copy_(ema_v * decay + model_v * (1. - decay))
 
 # ================= REPEATED AUGMENTATION SAMPLER =================
 class RepeatedAugmentationSampler(torch.utils.data.sampler.Sampler):
     def __init__(self, data_source, num_repeats=1, shuffle=True):
+        # Independent sampling stream, unaffected by model initialization/mixing.
+        self.generator = torch.Generator().manual_seed(SEED)
         self.data_source = data_source
         self.num_repeats = num_repeats
         self.shuffle = shuffle
@@ -283,7 +304,7 @@ class RepeatedAugmentationSampler(torch.utils.data.sampler.Sampler):
         n = len(self.data_source)
         indices = torch.arange(n).repeat(self.num_repeats)
         if self.shuffle:
-            indices = indices[torch.randperm(len(indices))]
+            indices = indices[torch.randperm(len(indices), generator=self.generator)]
         return iter(indices.tolist())
    
     def __len__(self):
@@ -324,13 +345,13 @@ val_dataset = ImageFolder('/root/imagenet/val', transform=val_transform)
 train_sampler = RepeatedAugmentationSampler(train_dataset, num_repeats=RA_REPS, shuffle=True)
 
 # ============================================================
-# Data-loader prefetching and deterministic worker initialization.
+# Data-loader prefetching and seeded worker initialization.
 # ============================================================
 def worker_init_fn(worker_id):
     # Seed each data-loader worker.
     seed = torch.initial_seed() % 2**32
-    import numpy as np
-    np.random.seed(seed + worker_id)
+    np.random.seed(seed)
+    random.seed(seed)
 
 train_loader = DataLoader(
     train_dataset,
@@ -340,7 +361,8 @@ train_loader = DataLoader(
     pin_memory=True,
     persistent_workers=True,
     prefetch_factor=4,
-    worker_init_fn=worker_init_fn
+    worker_init_fn=worker_init_fn,
+    generator=torch.Generator().manual_seed(SEED + 1)
 )
 
 val_loader = DataLoader(
@@ -350,7 +372,9 @@ val_loader = DataLoader(
     num_workers=NUM_WORKERS,
     pin_memory=True,
     persistent_workers=True,
-    prefetch_factor=4
+    prefetch_factor=4,
+    worker_init_fn=worker_init_fn,
+    generator=torch.Generator().manual_seed(SEED + 2)
 )
 
 # ================= CRITICAL SALU INITIALIZATION =================
@@ -395,7 +419,7 @@ criterion = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
 
 # Compile mode used by the historical run.
 if hasattr(torch, 'compile'):
-    model = torch.compile(model, mode="max-autotune-no-cudagraphs")
+    model = torch.compile(model, mode="max-autotune-no-cudagraphs", dynamic=False)
 
 # ================= LR SCHEDULER COSINE ANNEALING =================
 def adjust_learning_rate(epoch, step, steps_per_epoch):
@@ -419,12 +443,14 @@ def adjust_learning_rate(epoch, step, steps_per_epoch):
 
 # ================= MIXUP / CUTMIX =================
 def apply_mix(images, targets):
+    if not (use_mixup or use_cutmix):
+        return images, targets, targets, 1.0
     lam = torch.distributions.Beta(MIXING_ALPHA, MIXING_ALPHA).sample().item()
     index = torch.randperm(images.size(0)).to(DEVICE)
 
     # Preserve the historical random-number order: lambda and the permutation
     # are sampled before choosing between CutMix and MixUp.
-    if use_cutmix and torch.rand(1).item() > 0.5:
+    if use_cutmix and (not use_mixup or torch.rand(1).item() > 0.5):
         W, H = images.size(2), images.size(3)
         cut_rat = math.sqrt(1. - lam)
         cut_w, cut_h = int(W * cut_rat), int(H * cut_rat)
@@ -440,12 +466,25 @@ def apply_mix(images, targets):
 
 # ================= TRAIN =================
 def train_one_epoch(epoch):
+    # Controlled experiment: release unused CUDA allocator blocks once per epoch.
+    # This does not free live tensors, reset compilation, or change model weights.
+    torch.cuda.synchronize()
+    allocated_before = torch.cuda.memory_allocated() / 2**30
+    reserved_before = torch.cuda.memory_reserved() / 2**30
+    torch.cuda.empty_cache()
+    print(
+        f"\nEpoch {epoch + 1} allocator cleanup: "
+        f"allocated={allocated_before:.3f} GiB, "
+        f"reserved={reserved_before:.3f} -> {torch.cuda.memory_reserved() / 2**30:.3f} GiB",
+        flush=True,
+    )
     model.train()
     start_time = time.time()
     running_loss = 0.0
     correct = 0
     total = 0
     optimizer.zero_grad()
+    steps_per_epoch = len(train_loader)
 
     for batch_idx, (images, targets) in enumerate(train_loader):   
         lr_base = adjust_learning_rate(epoch, batch_idx, len(train_loader))
@@ -456,37 +495,41 @@ def train_one_epoch(epoch):
         if use_mixup or use_cutmix:
             images, ta, tb, lam = apply_mix(images, targets)
 
-        # drop_last=True gives equal-sized microbatches. Normalize the final
-        # accumulation window by its actual number of microbatches.
+        # Loss is a mean over images; weight each microbatch by its sample count.
         window_start = (batch_idx // ACCUMULATION_STEPS) * ACCUMULATION_STEPS
-        window_size = min(ACCUMULATION_STEPS, len(train_loader) - window_start)
+        window_samples = min(
+            ACCUMULATION_STEPS * BATCH_SIZE,
+            len(train_sampler) - window_start * BATCH_SIZE,
+        )
         with torch.amp.autocast('cuda', enabled=FP16):
             outputs = model(images)
             if use_mixup or use_cutmix:
                 loss = lam * criterion(outputs, ta) + (1 - lam) * criterion(outputs, tb)
             else:
                 loss = criterion(outputs, targets)
-            loss = loss / window_size
+            raw_loss = loss
+            loss = raw_loss * (images.size(0) / window_samples)
 
         scaler.scale(loss).backward()
 
-        if (batch_idx + 1) % ACCUMULATION_STEPS == 0 or batch_idx + 1 == len(train_loader):
+        if (batch_idx + 1) % ACCUMULATION_STEPS == 0 or batch_idx + 1 == steps_per_epoch:
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), CLIP_GRAD)
             scale_before = scaler.get_scale()
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
-            # GradScaler lowers its scale when a non-finite gradient skips SGD.
             if ema and scaler.get_scale() >= scale_before:
                 ema.update(model)
 
-        running_loss += loss.item() * window_size * images.size(0)
+        running_loss += raw_loss.item() * images.size(0)
         _, predicted = outputs.max(1)
         total += targets.size(0)
         if use_mixup or use_cutmix:
-            correct += (lam * predicted.eq(ta).sum().item()
-                        + (1.0 - lam) * predicted.eq(tb).sum().item())
+            # Combine on GPU before .item(): one scalar transfer, as in reference.
+            batch_correct = (lam * predicted.eq(ta).sum()
+                             + (1.0 - lam) * predicted.eq(tb).sum())
+            correct += batch_correct.item()
         else:
             correct += predicted.eq(targets).sum().item()
 
@@ -494,12 +537,15 @@ def train_one_epoch(epoch):
         est_total = elapsed / (batch_idx + 1) * len(train_loader)
        
         sys.stdout.write(
-            f"\rEpoch [{epoch+1}/{NUM_EPOCHS}] "
+            f"\rEpoch [{epoch + 1}/{NUM_EPOCHS}] "
+            f"Batch: {batch_idx + 1}/{steps_per_epoch} | "
             f"LR: {lr_base:.6f} | "
-            f"Loss: {running_loss/total:.4f} | "
-            f"MixedAcc: {100.*correct/total:.2f}% | "
-            f"ETA: {(est_total-elapsed)/60:.1f}m"
+            f"Loss: {running_loss / total:.4f} | "
+            f"MixedAcc: {100.0 * correct / total:.2f}% | "
+            f"Elapsed: {elapsed / 60:.3f}m | "
+            f"ETA: {(est_total - elapsed) / 60:.1f}m"
         )
+        
         sys.stdout.flush()
 
     print()
@@ -527,36 +573,96 @@ def evaluate(model, loader):
     return total_loss/total, 100.*correct1/total, 100.*correct5/total
 
 # ================= CHECKPOINTING =================
-best_checkpoint_path = None
+OUTPUT_DIR = os.environ.get("SALUNET_OUTPUT_DIR", "checkpoints_c50_stage3")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+RESUME_PATH = os.environ.get("SALUNET_RESUME", "")
 
-def save_checkpoint(epoch, model_to_save, optimizer, scheduler, scaler, best_top1, is_best=False):
-    """Save selected EMA weights and training metadata; not a full resume state."""
-    if not is_best:
-        return
-    
-    os.makedirs("checkpoints_c50_unclamped_abs", exist_ok=True)
-    
-    global best_checkpoint_path
-    previous_checkpoint_path = best_checkpoint_path
-    
-    filename = os.path.join("checkpoints_c50_unclamped_abs", f"best_checkpoint_epoch{epoch}_top{best_top1:.2f}.pth")
-    best_checkpoint_path = filename
-    
-    checkpoint = {
-        'epoch': epoch,
-        'best_top1': best_top1,
-        'model_state_dict': model_to_save.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'scaler_state_dict': scaler.state_dict(),
+
+def unwrap_model(model_to_unwrap):
+    return model_to_unwrap._orig_mod if hasattr(model_to_unwrap, "_orig_mod") else model_to_unwrap
+
+
+def training_config():
+    """Reject resume with incompatible schedule/data/recipe settings."""
+    names = ("SEED", "BATCH_SIZE", "ACCUMULATION_STEPS", "NUM_WORKERS", "BASE_LR",
+             "REFERENCE_BS", "LR", "WEIGHT_DECAY", "NORM_WEIGHT_DECAY", "MOMENTUM",
+             "NUM_EPOCHS", "WARMUP_EPOCHS", "LABEL_SMOOTHING", "MIXING_ALPHA",
+             "TRAIN_CROP_SIZE", "VAL_RESIZE_SIZE", "RA_REPS", "RANDOM_ERASE_PROB",
+             "FP16", "CLIP_GRAD", "EMA_DECAY_BASE", "use_mixup", "use_cutmix")
+    config = {name: globals()[name] for name in names}
+    config.update({"train_root": str(train_dataset.root), "val_root": str(val_dataset.root),
+                   "train_samples": len(train_dataset), "val_samples": len(val_dataset),
+                   "class_to_idx": train_dataset.class_to_idx,
+                   "critical_init": CRITICAL_SALU_INITIALIZATION,
+                   "variant": "SALU-exp_SWALU-abs-eps-unclamped_FP32",
+                   "compile_mode": "max-autotune-no-cudagraphs",
+                   "torch_version": str(torch.__version__)})
+    return config
+
+
+def atomic_save(payload, filename):
+    """Replace only after successful writing; retain previous file on failure."""
+    path = os.path.join(OUTPUT_DIR, filename)
+    temporary_path = path + ".tmp"
+    try:
+        torch.save(payload, temporary_path)
+        os.replace(temporary_path, path)
+    finally:
+        if os.path.exists(temporary_path):
+            os.remove(temporary_path)
+    return path
+
+
+def save_best(epoch_completed, source, top1, kind):
+    path = atomic_save({"epoch": epoch_completed, "top1": top1, "kind": kind,
+                        "model_state_dict": unwrap_model(source).state_dict(),
+                        "config": training_config()}, f"best_{kind}.pth")
+    print(f"Saved best {kind}: {path} (Top-1 {top1:.2f}%)")
+
+
+def save_resume(next_epoch, best_main, best_ema):
+    payload = {
+        "format_version": 1, "next_epoch": next_epoch,
+        "model": unwrap_model(model).state_dict(), "ema": ema.ema_model.state_dict(),
+        "ema_updates": ema.num_updates, "optimizer": optimizer.state_dict(),
+        "scaler": scaler.state_dict(), "best_top1_main": best_main,
+        "best_top1_ema": best_ema, "config": training_config(),
+        "python_rng": random.getstate(), "numpy_rng": np.random.get_state(),
+        "torch_rng": torch.get_rng_state(), "cuda_rng": torch.cuda.get_rng_state_all(),
+        "sampler_rng": train_sampler.generator.get_state(),
+        "train_loader_rng": train_loader.generator.get_state(),
+        "val_loader_rng": val_loader.generator.get_state(),
+        "worker_rng_restored": False,
     }
-    temporary_path = filename + ".tmp"
-    torch.save(checkpoint, temporary_path)
-    os.replace(temporary_path, filename)
-    if (previous_checkpoint_path is not None
-            and previous_checkpoint_path != filename
-            and os.path.exists(previous_checkpoint_path)):
-        os.remove(previous_checkpoint_path)
-    print(f"  Saved EMA checkpoint: {filename} (Top-1: {best_top1:.2f}%)")
+    path = atomic_save(payload, "last_resume.pth")
+    print(f"Saved epoch-boundary resume: {path}")
+
+
+def load_resume(path):
+    # Python/NumPy RNG objects require weights_only=False. Load trusted files only.
+    state = torch.load(path, map_location="cpu", weights_only=False)
+    if state.get("format_version") != 1:
+        raise ValueError("Expected a stage-3 last_resume.pth, not best model weights")
+    expected = training_config()
+    differences = [k for k in expected if state["config"].get(k) != expected[k]]
+    if differences:
+        raise ValueError("Resume configuration differs: " + ", ".join(differences))
+    if not 0 <= state["next_epoch"] <= NUM_EPOCHS:
+        raise ValueError("Invalid next_epoch in resume file")
+    unwrap_model(model).load_state_dict(state["model"])
+    ema.ema_model.load_state_dict(state["ema"])
+    ema.num_updates = state["ema_updates"]
+    optimizer.load_state_dict(state["optimizer"])
+    scaler.load_state_dict(state["scaler"])
+    random.setstate(state["python_rng"])
+    np.random.set_state(state["numpy_rng"])
+    torch.set_rng_state(state["torch_rng"])
+    torch.cuda.set_rng_state_all(state["cuda_rng"])
+    train_sampler.generator.set_state(state["sampler_rng"])
+    train_loader.generator.set_state(state["train_loader_rng"])
+    val_loader.generator.set_state(state["val_loader_rng"])
+    print(f"Resuming after {state['next_epoch']} completed epochs; worker augmentation RNGs restart.")
+    return state["next_epoch"], state["best_top1_main"], state["best_top1_ema"]
 
 # ================= TRAINING LOOP =================
 print(f"Starting training on {DEVICE} with {world_size} GPUs")
@@ -573,9 +679,13 @@ print("Automatic augmentation: TrivialAugmentWide")
 print(f"MixUp/CutMix shared alpha: {MIXING_ALPHA}")
 print("-" * 80)
 
-best_top1_ema = 0.0
+best_top1_main = float("-inf")
+best_top1_ema = float("-inf")
+start_epoch = 0
+if RESUME_PATH:
+    start_epoch, best_top1_main, best_top1_ema = load_resume(RESUME_PATH)
 
-for epoch in range(NUM_EPOCHS):
+for epoch in range(start_epoch, NUM_EPOCHS):
     train_loss, train_acc, current_lr = train_one_epoch(epoch)
     val_loss, top1, top5 = evaluate(model, val_loader)
    
@@ -587,9 +697,9 @@ for epoch in range(NUM_EPOCHS):
     # Collect activation parameters only once, at the end of training.
     if epoch == NUM_EPOCHS - 1:
         activation_params = collect_activation_params(model)
-        torch.save(activation_params, 'final_salu_swalu_unclamped_abs_params.pt')
+        atomic_save(activation_params, 'final_salu_swalu_params.pt')
         print("\nSaved final SALU/unclamped-SWALU parameters to "
-              "'final_salu_swalu_unclamped_abs_params.pt'")
+              "'final_salu_swalu_params.pt'")
     else:
         activation_params = {}
    
@@ -614,7 +724,7 @@ for epoch in range(NUM_EPOCHS):
         sample_params = {k: v for i, (k, v) in enumerate(activation_params.items()) if i < 10}
         log_dict.update(sample_params)
     
-    wandb.log(log_dict, step=epoch)
+    wandb.log(log_dict, step=epoch + 1)
    
     print(f"\n{'='*60}")
     print(f"Epoch {epoch+1}/{NUM_EPOCHS} - Summary")
@@ -624,20 +734,14 @@ for epoch in range(NUM_EPOCHS):
     if ema:
         print(f"VAL_EMA | Top1: {top1_ema:.2f}% | Top5: {top5_ema:.2f}%")
    
-    # Save the best EMA model.
-    if ema and top1_ema > best_top1_ema:
+    if top1 > best_top1_main:
+        best_top1_main = top1
+        save_best(epoch + 1, model, top1, "main")
+    if top1_ema > best_top1_ema:
         best_top1_ema = top1_ema
-        save_checkpoint(
-            epoch=epoch+1, 
-            model_to_save=ema.ema_model,
-            optimizer=optimizer, 
-            scheduler=None,
-            scaler=scaler, 
-            best_top1=best_top1_ema, 
-            is_best=True
-        )
-        print("  New best EMA score")
-   
+        save_best(epoch + 1, ema.ema_model, top1_ema, "ema")
+    save_resume(epoch + 1, best_top1_main, best_top1_ema)
+
     # Display a small final activation-parameter sample.
     if activation_params and epoch == NUM_EPOCHS - 1:
         sample_keys = list(activation_params.keys())[:4]
@@ -650,9 +754,10 @@ for epoch in range(NUM_EPOCHS):
 print(f"\n{'='*60}")
 print("Training completed!")
 print(f"Best EMA Top-1: {best_top1_ema:.2f}%")
-print(f"Best checkpoint saved: {best_checkpoint_path}")
+print(f"Best main Top-1: {best_top1_main:.2f}%")
+print(f"Checkpoint folder: {OUTPUT_DIR}")
 print("Final SALU/unclamped-SWALU parameters saved to "
-      "'final_salu_swalu_unclamped_abs_params.pt'")
+      "'final_salu_swalu_params.pt'")
 print(f"{'='*60}")
 
 wandb.finish()
