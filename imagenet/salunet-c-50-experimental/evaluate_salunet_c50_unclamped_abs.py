@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Evaluate an EMA checkpoint from the supplied 150-epoch SaluNet-C-50 run.
+"""Evaluate the experimental unclamped abs-positive SaluNet-C-50 variant.
 
-The model reconstruction, SALU initializations, checkpoint format, and default
-ImageNet validation transform match ``train_salunet_c50_reference.py``.
+Supports best_main.pth, best_ema.pth, epoch-boundary last_resume.pth,
+and legacy model_state_dict/state_dict exports. The architecture matches
+train_salunet_c50_unclamped_abs.py. Use --weights main or ema to select
+weights from a full resume checkpoint; auto prefers EMA in that format.
+Full resume files contain Python/NumPy RNG objects and require the explicit
+--trusted-checkpoint option. Only use that option for files you trust.
 """
 
 import argparse
@@ -166,35 +170,70 @@ def clean_state_dict(state_dict):
     return cleaned
 
 
-def load_checkpoint(model, checkpoint_path):
+def select_state_dict(checkpoint, weights="auto"):
+    """Select weights without silently substituting main for EMA, or vice versa."""
+    if not isinstance(checkpoint, dict) or not checkpoint:
+        raise TypeError("Checkpoint must be a nonempty dictionary")
+
+    # Full epoch-boundary resume format produced by the experimental trainer.
+    if "model" in checkpoint and "ema" in checkpoint:
+        if weights == "selected":
+            raise ValueError("A resume file has no selected export; use --weights main or ema")
+        kind = "ema" if weights == "auto" else weights
+        key = "ema" if kind == "ema" else "model"
+        state_dict = checkpoint[key]
+        epoch = checkpoint.get("next_epoch", "unknown")
+        score = checkpoint.get(f"best_top1_{kind}")
+        score_label = "Best recorded Top-1 (not necessarily these current weights)"
+    else:
+        if "model_state_dict" in checkpoint:
+            key = "model_state_dict"
+            state_dict = checkpoint[key]
+        elif "state_dict" in checkpoint:
+            key = "state_dict"
+            state_dict = checkpoint[key]
+        elif all(torch.is_tensor(value) for value in checkpoint.values()):
+            key = "plain_state_dict"
+            state_dict = checkpoint
+        else:
+            raise KeyError("No supported weights found in checkpoint")
+        kind = checkpoint.get("kind", "unknown") if key != "plain_state_dict" else "unknown"
+        if weights in ("main", "ema") and kind != weights:
+            raise ValueError(
+                f"Requested {weights} but this export has kind={kind!r}. "
+                "Use --weights selected for a legacy export with unspecified kind."
+            )
+        epoch = checkpoint.get("epoch", "unknown")
+        score = checkpoint.get("top1", checkpoint.get("best_top1"))
+        score_label = "Saved Top-1"
+
+    if not isinstance(state_dict, dict) or not state_dict:
+        raise TypeError(f"{key} must be a nonempty state dictionary")
+    if not all(isinstance(k, str) and torch.is_tensor(v) for k, v in state_dict.items()):
+        raise TypeError(f"{key} contains invalid parameter entries")
+    return state_dict, key, kind, epoch, score, score_label
+
+
+def load_checkpoint(model, checkpoint_path, weights="auto", trusted_checkpoint=False):
     try:
         checkpoint = torch.load(
-            checkpoint_path, map_location="cpu", weights_only=True
+            checkpoint_path, map_location="cpu", weights_only=not trusted_checkpoint
         )
-    except TypeError:
+    except TypeError as exc:
+        if not trusted_checkpoint:
+            raise RuntimeError(
+                "This PyTorch version does not support weights_only loading. "
+                "Upgrade PyTorch or use --trusted-checkpoint for your own file."
+            ) from exc
         checkpoint = torch.load(checkpoint_path, map_location="cpu")
 
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-        state_dict = checkpoint["model_state_dict"]
-    elif isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-        state_dict = checkpoint["state_dict"]
-    elif isinstance(checkpoint, dict) and all(
-        torch.is_tensor(value) for value in checkpoint.values()
-    ):
-        state_dict = checkpoint
-    else:
-        raise KeyError("No model_state_dict/state_dict found in checkpoint")
-
-    incompatible = model.load_state_dict(clean_state_dict(state_dict), strict=False)
-    if incompatible.missing_keys or incompatible.unexpected_keys:
-        print("Missing keys:", incompatible.missing_keys)
-        print("Unexpected keys:", incompatible.unexpected_keys)
-        raise RuntimeError("Checkpoint and reconstructed architecture do not match")
-
+    state_dict, key, kind, epoch, score, score_label = select_state_dict(checkpoint, weights)
+    model.load_state_dict(clean_state_dict(state_dict), strict=True)
     print(f"Checkpoint: {checkpoint_path}")
-    if isinstance(checkpoint, dict):
-        print(f"Saved epoch: {checkpoint.get('epoch', 'unknown')}")
-        print(f"Saved best EMA Top-1: {checkpoint.get('best_top1', 'unknown')}")
+    print(f"Loaded state: {key}; weights kind: {kind}")
+    print(f"Completed epoch: {epoch}")
+    if score is not None:
+        print(f"{score_label}: {float(score):.3f}%")
 
 
 def interpolation_from_name(name):
@@ -240,12 +279,22 @@ def evaluate(model, loader, device, use_amp):
                 f"Top-5={100.0 * correct5 / total:.3f}%"
             )
 
+    if total == 0:
+        raise ValueError("Evaluation loader contains no images")
     return 100.0 * correct1 / total, 100.0 * correct5 / total
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--weights", choices=("auto", "selected", "main", "ema"), default="auto",
+        help="auto uses an export's weights, or EMA from a full resume file.",
+    )
+    parser.add_argument(
+        "--trusted-checkpoint", action="store_true",
+        help="Allow Python/NumPy objects in a trusted full resume checkpoint.",
+    )
     parser.add_argument(
         "--data-root",
         type=Path,
@@ -316,13 +365,14 @@ def main():
     loader = DataLoader(**loader_kwargs)
 
     print(f"Validation images: {len(dataset)}")
+    print(f"Autocast: {'FP16' if not args.no_amp and device.type == 'cuda' else 'disabled (FP32)'}")
     print(
         f"Evaluation: resize={args.resize_size}, crop={args.crop_size}, "
         f"interpolation={args.interpolation}, device={device}"
     )
 
     model = build_salunet_c50()
-    load_checkpoint(model, args.checkpoint)
+    load_checkpoint(model, args.checkpoint, args.weights, args.trusted_checkpoint)
     model = model.to(device=device, memory_format=torch.channels_last)
 
     if args.compile:
