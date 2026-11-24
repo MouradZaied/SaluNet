@@ -10,6 +10,8 @@ This repository contains PyTorch and PyTorch Lightning implementations, training
 
 📄 **Paper:** [Geometry, Not Statistics: SaluNet for Normalization-Free CNNs and Transformers](https://arxiv.org/abs/2606.02927)
 
+🚀 **Interactive demo:** [Try SaluNet online](https://huggingface.co/spaces/Mourad-zaied/salunet-demo) — classify images with CNNs and Vision Transformers, and explore SALU, SWALU and GALU interactively.
+
 📣 **Research announcement and discussions:** [X thread](https://x.com/Mourad_ZAIED/status/2119487366918480035) · [Reddit discussion](https://www.reddit.com/r/deeplearning/comments/1xrqi5f/p_can_we_remove_batchnorm_and_layernorm_our_new/)
 
 
